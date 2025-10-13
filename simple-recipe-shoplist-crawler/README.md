@@ -38,7 +38,13 @@ uvicorn app.main:app --reload --port 8000
 Deploy with AWS SAM
 
 1. Install and configure AWS CLI, SAM CLI and ensure you have credentials.
-2. Package and deploy (example):
+
+2. Edit the samconfig:
+```bash
+cp samconfig.toml.template samconfig.toml
+```
+
+3. Package and deploy (example):
 
 ```bash
 sam validate --template-file samtemplate.yaml --lint
