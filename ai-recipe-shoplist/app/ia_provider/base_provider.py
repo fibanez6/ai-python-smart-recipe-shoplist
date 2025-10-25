@@ -25,14 +25,100 @@ from ..utils.ai_helpers import (
 # Get module logger
 logger = get_logger(__name__)
 
+from ..utils.retry_utils import (
+    AIRetryConfig,
+    NetworkError,
+    RateLimitError,
+    ServerError,
+    create_ai_retry_config,
+    with_ai_retry,
+)
+
 class BaseAIProvider(ABC):
-    """Abstract base class for AI providers."""
-    
+    """Complete a chat conversation using AI Models with tenacity retry logic."""
+
+    @property
     @abstractmethod
+    def name(self) -> str:
+        """Each child must define a name"""
+        pass
+
+    @property
+    @abstractmethod
+    def model(self) -> str:
+        """Each child must define a model"""
+        pass
+
+    @property
+    @abstractmethod
+    def max_tokens(self) -> int:
+        """Each child must define a max_tokens"""
+        pass
+
+    @property
+    @abstractmethod
+    def max_tokens(self) -> int:
+        """Each child must define a max_tokens"""
+        pass
+
+    @property
+    @abstractmethod
+    def temperature(self) -> float:
+        """Each child must define a temperature"""
+        pass
+
+    @property
+    @abstractmethod
+    def retry_config(self) -> AIRetryConfig:
+        """Each child must define a retry configuration"""
+        pass
+    
     async def complete_chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
         """Complete a chat conversation."""
-    
-    # @abstractmethod
+        max_tokens = kwargs.get("max_tokens", self.max_tokens)
+        temperature = kwargs.get("temperature", self.temperature)
+
+        logger.debug(f"[{self.name}] API call - Model: {self.model}, Messages: {len(messages)}, Max tokens: {max_tokens}, Temperature: {temperature}")
+
+        # Log messages in debug mode (truncate for readability)
+        if logger.isEnabledFor(logging.DEBUG):
+            for i, msg in enumerate(messages):
+                content = msg.get('content', '')[:200] + '...' if len(msg.get('content', '')) > 200 else msg.get('content', '')
+                logger.debug(f"  Message {i+1} ({msg.get('role', 'unknown')}): {content}")
+
+        @with_ai_retry(self.retry_config)
+        async def chat_completion_request():            
+            try:
+                response = await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    temperature=temperature
+                )
+                return response.choices[0].message.content
+
+            except Exception as e:
+                # Convert provider-specific errors to our retry framework
+                error_str = str(e).lower()
+                if "rate limit" in error_str or "429" in error_str:
+                    raise RateLimitError(f"{self.name} rate limit: {e}")
+                elif any(keyword in error_str for keyword in ["server", "503", "502", "500"]):
+                    raise ServerError(f"{self.name} server error: {e}")
+                elif any(keyword in error_str for keyword in ["timeout", "connection"]):
+                    raise NetworkError(f"{self.name} network error: {e}")
+                else:
+                    raise  # Let tenacity decide if it's retryable
+
+        try:
+            result_content = await chat_completion_request()
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"[{self.name}] OpenAI response preview: {result_content[:300]}{'...' if len(result_content) > 300 else ''}")
+            return result_content
+        
+        except Exception as e:
+            logger.error(f"[{self.name}] OpenAI API error: {e}")
+            raise
+
     async def extract_recipe_data(self, html_content: str, url: str) -> Dict[str, Any]:
         """Extract structured recipe data from HTML using AI."""
 
@@ -56,8 +142,8 @@ class BaseAIProvider(ABC):
         prompt = format_ai_prompt(RECIPE_EXTRACTION_PROMPT, html_content=html_content)
 
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"[OpenAI] System message: {system}")
-            logger.debug(f"[OpenAI] User message: {prompt[:200]}{'...' if len(prompt) > 200 else ''}")
+            logger.debug(f"[{self.name}] System message: {system}")
+            logger.debug(f"[{self.name}] User message: {prompt[:200]}{'...' if len(prompt) > 200 else ''}")
 
         messages = [
             {"role": "system", "content": system},
@@ -70,12 +156,12 @@ class BaseAIProvider(ABC):
             recipe_data = safe_json_parse(response, fallback={})
             return validate_recipe_data(recipe_data)
         except Exception as e:
-            logger.error(f"[OpenAI] Error in extract_recipe_data: {e}")
+            logger.error(f"[{self.name}] Error in extract_recipe_data: {e}")
             # Only log response if it was defined
             try:
-                logger.debug(f"[OpenAI] Raw response that failed to parse: {response[:500]}...")
+                logger.debug(f"[{self.name}] Raw response that failed to parse: {response[:500]}...")
             except NameError:
-                logger.debug("[OpenAI] No response received due to earlier error")
+                logger.debug(f"[{self.name}] No response received due to earlier error")
             
             # Return minimal structure if parsing fails
             return {
@@ -89,7 +175,6 @@ class BaseAIProvider(ABC):
                 "image_url": None
             }
     
-    # @abstractmethod
     async def normalize_ingredients(self, ingredients: List[str]) -> List[Dict[str, Any]]:
         """Normalize ingredient texts into structured data."""
             
@@ -105,8 +190,8 @@ class BaseAIProvider(ABC):
         )
 
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"[OpenAI] System message: {system}")
-            logger.debug(f"[OpenAI] User message: {prompt}")
+            logger.debug(f"[{self.name}] System message: {system}")
+            logger.debug(f"[{self.name}] User message: {prompt}")
 
         messages = [
             {"role": "system", "content": system},
@@ -117,18 +202,18 @@ class BaseAIProvider(ABC):
             response = await self.complete_chat(messages, max_tokens=1000)
 
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(f"[OpenAI] Response: {response}")
+                logger.debug(f"[{self.name}] Response: {response}")
 
             # Use centralized JSON parsing with validation
             ingredient_data = safe_json_parse(response, fallback=[])
             return validate_ingredient_data(ingredient_data)
         except Exception as e:
-            logger.error(f"[OpenAI] Error normalizing ingredients: {e}")
+            logger.error(f"[{self.name}] Error normalizing ingredients: {e}")
             # Only log response if it was defined
             try:
-                logger.debug(f"[OpenAI] Raw response that failed to parse: {response[:500]}...")
+                logger.debug(f"[{self.name}] Raw response that failed to parse: {response[:500]}...")
             except NameError:
-                logger.debug("[OpenAI] No response received due to earlier error")
+                logger.debug(f"[{self.name}] No response received due to earlier error")
             # Fallback: return basic structure
             return [
                 {
@@ -140,7 +225,6 @@ class BaseAIProvider(ABC):
                 for ing in ingredients
             ]
     
-    # @abstractmethod
     async def match_products(self, ingredient: str, products: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Match and rank products for an ingredient using AI."""
 
@@ -159,8 +243,8 @@ class BaseAIProvider(ABC):
             products_json=json.dumps(products, indent=2)
         )
 
-        logger.debug(f"[OpenAI] System message: {system}")
-        logger.debug(f"[OpenAI] User message: {prompt}")
+        logger.debug(f"[{self.name}] System message: {system}")
+        logger.debug(f"[{self.name}] User message: {prompt}")
 
         messages = [
             {"role": "system", "content": system},
@@ -173,13 +257,16 @@ class BaseAIProvider(ABC):
             ranked_products = safe_json_parse(response, fallback=products)
             return ranked_products if isinstance(ranked_products, list) else products
         except Exception as e:
-            logger.error(f"[OpenAI] Error ranking products: {e}")
+            logger.error(f"[{self.name}] Error ranking products: {e}")
             # Only log response if it was defined
             try:
-                logger.debug(f"[OpenAI] Raw response that failed to parse: {response[:500]}...")
+                logger.debug(f"[{self.name}] Raw response that failed to parse: {response[:500]}...")
             except NameError:
-                logger.debug("[OpenAI] No response received due to earlier error")
+                logger.debug(f"[{self.name}] No response received due to earlier error")
             # Fallback: return original products with default scores
             for i, product in enumerate(products):
                 product["match_score"] = 100 - (i * 10)  # Simple scoring
             return products
+        
+    async def close(self):
+        await self._client.aclose()

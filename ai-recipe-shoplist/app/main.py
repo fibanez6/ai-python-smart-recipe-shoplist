@@ -24,7 +24,8 @@ from .config.pydantic_config import (
     LOG_FILE_PATH,
     AI_PROVIDER,
     SERVER_HOST,
-    SERVER_PORT
+    SERVER_PORT,
+    get_config_summary
 )
 
 # Initialize logging with file support if needed
@@ -85,16 +86,20 @@ class RecipeURL(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup."""
-    print("[App] Starting AI Recipe Shoplist")
+    logger.info("[App] Starting AI Recipe Shoplist")
+
+    logger.info("[App] Initializing Store Crawler...")
+    config_summary = get_config_summary()
+    logger.debug(json.dumps(config_summary, indent=4, sort_keys=True))
     
     # Test AI service initialization
     try:
         ai_service = get_ai_service()
-        print(f"[App] AI service initialized with provider: {ai_service.provider_name}")
+        logger.info(f"[App] AI service initialized with provider: {ai_service.provider_name}")
     except Exception as e:
-        print(f"[App] Warning: AI service initialization failed: {e}")
+        logger.info(f"[App] Warning: AI service initialization failed: {e}")
     
-    print("[App] Application startup complete")
+    logger.info("[App] Application startup complete")
 
 
 @app.get("/", response_class=HTMLResponse)

@@ -23,6 +23,13 @@ except ImportError:
     raise ImportError("tenacity library not installed. Run: pip install tenacity")
 
 from ..config.logging_config import get_logger
+from ..config.pydantic_config import (
+    RETRY_BASE_DELAY,
+    RETRY_MAX_ATTEMPTS,
+    RETRY_MAX_DELAY,
+    RETRY_MULTIPLIER,
+    RETRY_RPM_LIMIT
+)
 
 logger = get_logger(__name__)
 
@@ -191,28 +198,12 @@ class AIRetryConfig:
     ):
         self.provider_name = provider_name
         
-        # Load from environment with provider-specific settings, then DEFAULT_ fallbacks
-        self.max_retries = max_retries or int(
-            os.getenv(f"{provider_name}_MAX_RETRIES") or 
-            os.getenv("DEFAULT_MAX_RETRIES", "3")
-        )
-        self.base_delay = base_delay or float(
-            os.getenv(f"{provider_name}_BASE_DELAY") or 
-            os.getenv("DEFAULT_BASE_DELAY", "1.0")
-        )
-        self.max_delay = max_delay or float(
-            os.getenv(f"{provider_name}_MAX_DELAY") or 
-            os.getenv("DEFAULT_MAX_DELAY", "60.0")
-        )
-        self.multiplier = multiplier or float(
-            os.getenv(f"{provider_name}_RETRY_MULTIPLIER") or 
-            os.getenv("DEFAULT_RETRY_MULTIPLIER", "2.0")
-        )
-        
-        rpm = requests_per_minute or int(
-            os.getenv(f"{provider_name}_RPM_LIMIT") or 
-            os.getenv("DEFAULT_RPM_LIMIT", "15")
-        )
+        self.max_retries = max_retries or int(os.getenv(f"{provider_name}_MAX_RETRIES") or RETRY_MAX_ATTEMPTS)
+        self.base_delay = base_delay or float(os.getenv(f"{provider_name}_BASE_DELAY") or RETRY_BASE_DELAY)
+        self.max_delay = max_delay or float(os.getenv(f"{provider_name}_MAX_DELAY") or RETRY_MAX_DELAY)
+        self.multiplier = multiplier or float(os.getenv(f"{provider_name}_RETRY_MULTIPLIER") or RETRY_MULTIPLIER)
+        rpm = requests_per_minute or int(os.getenv(f"{provider_name}_RPM_LIMIT") or RETRY_RPM_LIMIT)
+
         self.rate_limiter = RateLimiter(rpm) if rpm > 0 else None
         
         # Create tenacity retry decorator
@@ -220,59 +211,11 @@ class AIRetryConfig:
             provider_name, self.max_retries, self.base_delay, self.max_delay, self.multiplier
         )
         
-        logger.debug(f"{provider_name} retry config: max_retries={self.max_retries}, "
+        logger.debug(f"[AIRetryConfig] {provider_name} retry config: max_retries={self.max_retries}, "
                     f"base_delay={self.base_delay}s, max_delay={self.max_delay}s, "
                     f"multiplier={self.multiplier}, rpm_limit={rpm}")
 
-
-class HTTPRetryClient:
-    """HTTP client with tenacity-based retry logic."""
     
-    def __init__(self, retry_config: AIRetryConfig, timeout: float = 30.0):
-        self.retry_config = retry_config
-        self.timeout = timeout
-    
-    async def post_json(
-        self,
-        url: str,
-        headers: Dict[str, str],
-        json_data: Dict[str, Any],
-        operation_name: str = "HTTP POST"
-    ) -> Dict[str, Any]:
-        """Make a POST request with JSON data and retry logic."""
-        
-        @self.retry_config.retry_decorator
-        async def make_request() -> Dict[str, Any]:
-            # Apply rate limiting before request
-            if self.retry_config.rate_limiter:
-                await self.retry_config.rate_limiter.wait_if_needed()
-            
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                try:
-                    response = await client.post(url, headers=headers, json=json_data)
-                    response.raise_for_status()
-                    return response.json()
-                except httpx.HTTPStatusError as e:
-                    # Convert to our error types for better handling
-                    if e.response.status_code == 429:
-                        retry_after = None
-                        if "retry-after" in e.response.headers:
-                            try:
-                                retry_after = float(e.response.headers["retry-after"])
-                            except ValueError:
-                                pass
-                        raise RateLimitError(f"Rate limited: {e}", retry_after)
-                    elif e.response.status_code >= 500:
-                        raise ServerError(f"Server error: {e}")
-                    else:
-                        # Don't retry client errors (4xx except 429)
-                        raise
-                except (httpx.TimeoutException, httpx.ConnectError, httpx.ReadError) as e:
-                    raise NetworkError(f"Network error: {e}")
-        
-        return await make_request()
-
-
 def with_ai_retry(retry_config: AIRetryConfig):
     """
     Decorator to add retry logic to async functions.

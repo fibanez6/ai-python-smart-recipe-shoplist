@@ -70,6 +70,7 @@ ai-recipe-shoplist/
 
 3. **Install dependencies:**
    ```bash
+   pip install --upgrade pip
    pip install -r requirements.txt
    ```
 
@@ -83,6 +84,14 @@ ai-recipe-shoplist/
    ```
 
 5. **Run the application:**
+   
+   **Option A: Using the startup script (recommended):**
+   ```bash
+   chmod +x start.sh
+   ./start.sh
+   ```
+   
+   **Option B: Direct uvicorn command:**
    ```bash
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
@@ -91,6 +100,22 @@ ai-recipe-shoplist/
    - **Web Interface:** http://localhost:8000
    - **API Documentation:** http://localhost:8000/api/docs
    - **API Re-Documentation:** http://localhost:8000/api/redoc
+
+### Using the Startup Script
+
+The included `start.sh` script provides additional benefits:
+
+- **Automatic environment setup**: Creates virtual environment if missing
+- **Dependency management**: Installs/updates requirements automatically  
+- **Configuration validation**: Validates your `.env` file before starting
+- **Directory creation**: Creates required directories (logs, cache, etc.)
+- **Provider checking**: Verifies AI provider connectivity (e.g., Ollama)
+- **Flexible configuration**: Reads server host/port from environment variables
+
+```bash
+chmod +x start.sh
+./start.sh
+```
 
 ## 🤖 AI Provider Setup
 
@@ -396,7 +421,31 @@ MIT License - see LICENSE file for details.
 
 ## 🆘 Troubleshooting
 
+### Quick Fixes
+
+**Application won't start - Missing pydantic_settings module:**
+```bash
+pip install --upgrade pip
+pip install pydantic-settings>=2.0.0
+```
+
+**Or reinstall all dependencies:**
+```bash
+pip install -r requirements.txt --force-reinstall
+```
+
 ### Common Issues
+
+**Missing Dependencies (pydantic_settings)**
+- If you see `ModuleNotFoundError: No module named 'pydantic_settings'`, run:
+  ```bash
+  pip install --upgrade pip
+  pip install pydantic-settings>=2.0.0
+  ```
+- Or reinstall all dependencies:
+  ```bash
+  pip install -r requirements.txt --force-reinstall
+  ```
 
 **AI Service Not Working**
 - Verify API keys are correct

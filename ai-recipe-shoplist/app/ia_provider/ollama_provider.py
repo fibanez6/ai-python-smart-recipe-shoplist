@@ -2,13 +2,15 @@
 
 from typing import Dict, List
 
-from ..config.pydantic_config import OLLAMA_HOST, OLLAMA_MODEL, OLLAMA_TIMEOUT
+from ..config.pydantic_config import (
+    OLLAMA_HOST, 
+    OLLAMA_MODEL, 
+    OLLAMA_TEMPERATURE, 
+    OLLAMA_MAX_TOKENS
+)
 from ..config.logging_config import get_logger
-from ..utils.retry_utils import NetworkError, create_ai_retry_config, with_ai_retry
+from ..utils.retry_utils import AIRetryConfig, NetworkError, create_ai_retry_config, with_ai_retry
 from .base_provider import BaseAIProvider
-
-# Get module logger
-logger = get_logger(__name__)
 
 # Ollama imports
 try:
@@ -16,29 +18,28 @@ try:
 except ImportError:
     ollama = None
 
+# Get module logger
+logger = get_logger(__name__)
 
 class OllamaProvider(BaseAIProvider):
     """Ollama local LLM provider with tenacity-based retry logic."""
     
     def __init__(self):
+        super().__init__()
+
         if not ollama:
             raise ImportError("Ollama library not installed. Run: pip install ollama")
         
-        self.name = "OllamaProvider"
-        self.base_url = OLLAMA_HOST
-        self.model = OLLAMA_MODEL
-        self.timeout = OLLAMA_TIMEOUT
+        logger.debug(f"[{self.name}] Initializing Ollama Models provider...")
         
-        # Create tenacity-based retry configuration (local service, no rate limiting needed usually)
-        self.retry_config = create_ai_retry_config("OLLAMA", requests_per_minute=0)  # 0 = no rate limiting
-        
-        # Test connection
         try:
-            client = ollama.Client(host=self.base_url)
-            client.list()
-            logger.info(f"Ollama provider initialized - Model: {self.model}, Base URL: {self.base_url}")
+            self._client = ollama.Client(host=self.base_url)
+            self._client.list()
+            self._retry_config = create_ai_retry_config(self.name, requests_per_minute=0)  # 0 = no rate limiting
+
+            logger.info(f"[{self.name}] Provider initialized - Model: {OLLAMA_MODEL}, Host: {OLLAMA_HOST}")
         except Exception as e:
-            raise ConnectionError(f"Cannot connect to Ollama at {self.base_url}: {e}")
+            raise ConnectionError(f"Cannot connect to Ollama at {OLLAMA_HOST}: {e}")
     
     async def complete_chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
         """Complete a chat conversation using Ollama with tenacity retry logic."""
@@ -46,7 +47,7 @@ class OllamaProvider(BaseAIProvider):
         @with_ai_retry(self.retry_config)
         async def make_ollama_request():
             try:
-                client = ollama.AsyncClient(host=self.base_url)
+                client = ollama.AsyncClient(host=OLLAMA_HOST)
                 
                 # Format prompt for Ollama
                 prompt = ""
@@ -61,8 +62,8 @@ class OllamaProvider(BaseAIProvider):
                     model=self.model,
                     prompt=prompt,
                     options={
-                        "temperature": kwargs.get("temperature", 0.1),
-                        "num_predict": kwargs.get("max_tokens", 2000),
+                        "temperature": kwargs.get("temperature", OLLAMA_TEMPERATURE),
+                        "num_predict": kwargs.get("max_tokens", OLLAMA_MAX_TOKENS),
                     }
                 )
                 return response['response']
@@ -77,17 +78,32 @@ class OllamaProvider(BaseAIProvider):
         try:
             return await make_ollama_request()
         except Exception as e:
-            logger.error(f"Ollama API error: {e}")
+            logger.error(f"[{self.name}] API error: {e}")
             raise
+
+    @property
+    def name(self) -> str:
+        return "OLLAMA"
     
-    # async def extract_recipe_data(self, html_content: str, url: str) -> Dict[str, Any]:
-    #     """Extract structured recipe data from HTML using Ollama."""
-    #     return await OpenAIProvider.extract_recipe_data(self, html_content, url)
+    @property
+    def model(self) -> str:
+        return OLLAMA_MODEL
+
+    @property
+    def max_tokens(self) -> int:
+        return OLLAMA_MAX_TOKENS
+
+    @property
+    def temperature(self) -> float:
+        return OLLAMA_TEMPERATURE
+
+    @property
+    def client(self) -> any:
+        return self._client
     
-    # async def normalize_ingredients(self, ingredients: List[str]) -> List[Dict[str, Any]]:
-    #     """Normalize ingredient texts into structured data."""
-    #     return await OpenAIProvider.normalize_ingredients(self, ingredients)
+    @property
+    def retry_config(self) -> AIRetryConfig:
+        return self._retry_config
     
-    # async def match_products(self, ingredient: str, products: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    #     """Match and rank products for an ingredient using AI."""
-    #     return await OpenAIProvider.match_products(self, ingredient, products)
+    def __repr__(self) -> str:
+        return f"<OllamaProvider(model={OLLAMA_MODEL}, host={OLLAMA_HOST})>"

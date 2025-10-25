@@ -15,7 +15,6 @@ from .ai_helpers import (
 )
 from .retry_utils import (  # Core classes; Error types; Functions; Provider-specific configs
     AIRetryConfig,
-    HTTPRetryClient,
     NetworkError,
     RateLimiter,
     RateLimitError,

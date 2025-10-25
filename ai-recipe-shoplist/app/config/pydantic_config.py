@@ -5,11 +5,10 @@ This module provides type-safe, validated configuration with automatic
 environment variable loading and .env file support.
 """
 
-from typing import Literal, Optional
+from typing_extensions import get_args, Literal
 from pydantic import Field, field_validator, ConfigDict
 from pydantic_settings import BaseSettings
 from pathlib import Path
-
 
 class WebFetcherSettings(BaseSettings):
     """Web fetcher configuration settings."""
@@ -26,19 +25,17 @@ class WebFetcherSettings(BaseSettings):
     enable_content_loading: bool = Field(default=False, description="Enable loading content from disk")
     ai_max_length: int = Field(default=8000, description="Maximum content length for AI processing")
     
-    model_config = ConfigDict(env_prefix="FETCHER_", case_sensitive=False)
+    model_config = ConfigDict(env_prefix="FETCHER_")
 
 
 class AIProviderSettings(BaseSettings):
     """AI provider configuration settings."""
-    
+
     provider: Literal["openai", "azure", "ollama", "github", "stub"] = Field(
         default="openai", description="AI provider to use"
     )
     
-    class Config:
-        env_prefix = "AI_"
-        case_sensitive = False
+    model_config = ConfigDict(env_prefix="")
 
 
 class OpenAISettings(BaseSettings):
@@ -56,9 +53,7 @@ class OpenAISettings(BaseSettings):
     max_delay: float = Field(default=60.0, description="Maximum delay between retries")
     rpm_limit: int = Field(default=500, description="Requests per minute limit")
     
-    class Config:
-        env_prefix = "OPENAI_"
-        case_sensitive = False
+    model_config = ConfigDict(env_prefix="OPENAI_")
 
 
 class AzureOpenAISettings(BaseSettings):
@@ -78,9 +73,7 @@ class AzureOpenAISettings(BaseSettings):
     max_delay: float = Field(default=60.0, description="Maximum delay between retries")
     rpm_limit: int = Field(default=500, description="Requests per minute limit")
     
-    class Config:
-        env_prefix = "AZURE_OPENAI_"
-        case_sensitive = False
+    model_config = ConfigDict(env_prefix="AZURE_OPENAI_")
 
 
 class OllamaSettings(BaseSettings):
@@ -98,9 +91,7 @@ class OllamaSettings(BaseSettings):
     max_delay: float = Field(default=60.0, description="Maximum delay between retries")
     rpm_limit: int = Field(default=60, description="Requests per minute limit")
     
-    class Config:
-        env_prefix = "OLLAMA_"
-        case_sensitive = False
+    model_config = ConfigDict(env_prefix="OLLAMA_")
 
 
 class GitHubSettings(BaseSettings):
@@ -119,9 +110,7 @@ class GitHubSettings(BaseSettings):
     max_delay: float = Field(default=60.0, description="Maximum delay between retries")
     rpm_limit: int = Field(default=15, description="Requests per minute limit")
     
-    class Config:
-        env_prefix = "GITHUB_"
-        case_sensitive = False
+    model_config = ConfigDict(env_prefix="GITHUB_")
 
 
 class LoggingSettings(BaseSettings):
@@ -134,9 +123,7 @@ class LoggingSettings(BaseSettings):
     backup_count: int = Field(default=5, description="Number of backup files to keep")
     debug_enabled: bool = Field(default=False, description="Enable debug mode")
     
-    class Config:
-        env_prefix = "LOG_"
-        case_sensitive = False
+    model_config = ConfigDict(env_prefix="LOG_")
 
 
 class ServerSettings(BaseSettings):
@@ -145,9 +132,7 @@ class ServerSettings(BaseSettings):
     host: str = Field(default="0.0.0.0", description="Server host")
     port: int = Field(default=8000, description="Server port")
     
-    class Config:
-        env_prefix = "SERVER_"
-        case_sensitive = False
+    model_config = ConfigDict(env_prefix="SERVER_")
 
 
 class RetrySettings(BaseSettings):
@@ -157,10 +142,9 @@ class RetrySettings(BaseSettings):
     base_delay: float = Field(default=1.0, description="Base delay between retries")
     max_delay: float = Field(default=60.0, description="Maximum delay between retries")
     multiplier: float = Field(default=2.0, description="Delay multiplier")
+    rpm_limit: int = Field(default=15, description="Requests per minute limit")
     
-    class Config:
-        env_prefix = "RETRY_"
-        case_sensitive = False
+    model_config = ConfigDict(env_prefix="RETRY_")
 
 
 class StoreSettings(BaseSettings):
@@ -168,9 +152,7 @@ class StoreSettings(BaseSettings):
     
     region: str = Field(default="au", description="Store region (au, us, uk, etc.)")
     
-    class Config:
-        env_prefix = "STORE_"
-        case_sensitive = False
+    model_config = ConfigDict(env_prefix="STORE_")
 
 
 class MockSettings(BaseSettings):
@@ -178,9 +160,7 @@ class MockSettings(BaseSettings):
     
     use_mock_ai_responses: bool = Field(default=False, description="Use mock AI responses")
     
-    class Config:
-        env_prefix = ""
-        case_sensitive = False
+    model_config = ConfigDict(env_prefix="")
 
 
 class AppSettings(BaseSettings):
@@ -213,9 +193,11 @@ class AppSettings(BaseSettings):
     
     model_config = ConfigDict(
         env_file=".env",
+        env_prefix="",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        validate_assignment=True
+        validate_assignment=True,
+        extra="ignore",
     )
     
     def validate_required_config(self) -> list[str]:
@@ -244,13 +226,24 @@ class AppSettings(BaseSettings):
                 return "***"
             return value
         
+        def filter_ai_providers(section: str) -> dict:
+            """Show effective AI provider configuration."""
+            # ai_provider_keys = ["openai", "azure", "ollama", "github", "stub"]
+            ai_provider_keys = list(get_args(AIProviderSettings.model_fields["provider"].annotation))
+            if section in ai_provider_keys:
+                if section == self.ai_provider.provider:
+                    return {section: self.ai_provider.provider}
+                else:
+                    return {}
+            return {section: self.ai_provider.provider}
+        
         summary = {}
         for section_name, section in self.__dict__.items():
             if hasattr(section, '__dict__'):
                 summary[section_name] = {
                     key: mask_sensitive(key, value) 
                     for key, value in section.__dict__.items()
-                    if not key.startswith('_')
+                    if not key.startswith('_') and filter_ai_providers(section_name)
                 }
         
         return summary
@@ -312,6 +305,7 @@ RETRY_MAX_ATTEMPTS = settings.retry.max_attempts
 RETRY_BASE_DELAY = settings.retry.base_delay
 RETRY_MAX_DELAY = settings.retry.max_delay
 RETRY_MULTIPLIER = settings.retry.multiplier
+RETRY_RPM_LIMIT = settings.retry.rpm_limit
 
 STORE_REGION = settings.store.region
 
@@ -337,7 +331,6 @@ GITHUB_MAX_RETRIES = settings.github.max_retries
 GITHUB_BASE_DELAY = settings.github.base_delay
 GITHUB_MAX_DELAY = settings.github.max_delay
 GITHUB_RPM_LIMIT = settings.github.rpm_limit
-
 
 # Utility functions for backward compatibility
 def get_config_summary() -> dict:
