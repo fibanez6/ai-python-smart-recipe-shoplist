@@ -55,6 +55,9 @@ def clean_html_for_ai(html_content: str) -> str:
         
     try:
         soup = BeautifulSoup(html_content, 'html.parser')
+        body = soup.find('body')
+        if body is not None:
+            soup = body
         remove_html_scripts_and_styles(soup)
         remove_html_comments(soup)
         remove_html_tags(soup)
@@ -66,7 +69,6 @@ def clean_html_for_ai(html_content: str) -> str:
         else:
             cleaned = remove_whitespaces_and_newlines(cleaned)
         return cleaned
-        
     except Exception as e:
         logger.warning(f"[WebFetcher] Error cleaning HTML: {e}, returning original content")
         return html_content

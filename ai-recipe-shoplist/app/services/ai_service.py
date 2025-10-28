@@ -62,10 +62,6 @@ class AIService:
         print(f"[AIService] Extracting recipe using {self.provider_name} provider")
         
         try:
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(f"[AIService] HTML content length: {len(html_content)} chars from {url}")
-                logger.debug(f"[AIService] Recipe content (first 5 lines): {chr(10).join(html_content.splitlines()[:5])}")
-
             recipe: Recipe = await self.provider.extract_recipe_data(html_content, url)
             return recipe
         except Exception as e:

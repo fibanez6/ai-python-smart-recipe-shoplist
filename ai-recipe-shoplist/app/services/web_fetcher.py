@@ -43,6 +43,7 @@ class WebFetcher:
         
         # Cache TTL configuration
         cache_ttl = FETCHER_CACHE_TTL
+        cache_max_size = FETCHER_MAX_SIZE
         
         # Content saving/loading configuration
         enable_content_saving = FETCHER_ENABLE_CONTENT_SAVING
@@ -53,7 +54,7 @@ class WebFetcher:
         self.tmp_folder.mkdir(parents=True, exist_ok=True)
         
         # Initialize cache manager and content storage
-        self.cache_manager = CacheManager(self.tmp_folder, cache_ttl)
+        self.cache_manager = CacheManager(cache_ttl, cache_max_size)
         self.content_storage = ContentStorage(self.tmp_folder, enable_content_saving, enable_content_loading)
         
         # Keep references for backward compatibility

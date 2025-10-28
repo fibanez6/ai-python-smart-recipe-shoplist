@@ -34,6 +34,9 @@ from ..utils.retry_utils import (
     ServerError,
     with_ai_retry,
 )
+
+from ..config.pydantic_config import AI_PROVIDER_CHAT_ENABLED  # Import the new config variable
+
 from ..services.tokenizer_service import TokenizerService  # Import TokenizerService
 
 @dataclass
@@ -133,7 +136,9 @@ class BaseAIProvider(ABC):
                     response = await self.client.chat.completions.parse(**chat_params)
                 else:
                     response = await self.client.chat.completions.create(**chat_params)
-                
+
+                logger.info(f"[{self.name}] OpenAI API call stats: {response.usage} ")
+
                 message = response.choices[0].message
 
                 if logger.isEnabledFor(logging.DEBUG):
@@ -159,11 +164,19 @@ class BaseAIProvider(ABC):
                 else:
                     raise  # Let tenacity decide if it's retryable
 
-        try:
-            return await chat_completion_request()
-        except Exception as e:
-            logger.error(f"[{self.name}] OpenAI API error: {e}")
-            raise
+        if not AI_PROVIDER_CHAT_ENABLED:
+            logger.info(f"[{self.name}] AI provider chat calls are disabled. Skipping API call.")
+            return ChatMessageResult(
+                content="",
+                parsed=None,
+                refusal="AI provider chat calls are disabled."
+            )
+        else:
+            try:
+                return await chat_completion_request()
+            except Exception as e:
+                logger.error(f"[{self.name}] OpenAI API error: {e}")
+                raise
 
     async def extract_recipe_data(self, html_content: str, url: str) -> Recipe:
         """Extract structured recipe data from HTML using AI."""

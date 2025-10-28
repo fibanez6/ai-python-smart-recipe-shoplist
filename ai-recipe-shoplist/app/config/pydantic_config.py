@@ -34,6 +34,7 @@ class AIProviderSettings(BaseSettings):
     provider: Literal["openai", "azure", "ollama", "github", "stub"] = Field(
         default="openai", description="AI provider to use"
     )
+    provider_chat_enabled: bool = Field(default=True, description="Enable or disable AI provider chat")
     
     model_config = ConfigDict(env_prefix="")
 
@@ -275,6 +276,7 @@ TIKTOKEN_MODEL = settings.tiktoken.model
 TIKTOKEN_ENCODER = settings.tiktoken.encoder
 
 AI_PROVIDER = settings.ai_provider.provider
+AI_PROVIDER_CHAT_ENABLED = settings.ai_provider.provider_chat_enabled
 
 OPENAI_API_KEY = settings.openai.api_key
 OPENAI_MODEL = settings.openai.model
