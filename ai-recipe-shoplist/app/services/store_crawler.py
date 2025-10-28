@@ -44,8 +44,9 @@ class ConfigurableStoreCrawler:
         if store_names:
             active_stores = []
             for store_name in store_names:
-                if validate_store_id(store_name) and store_name in self.stores:
-                    active_stores.append(store_name)
+                store_name_lower = store_name.lower()
+                if validate_store_id(store_name_lower) and store_name_lower in self.stores:
+                    active_stores.append(store_name_lower)
                 else:
                     logger.warning(f"Invalid or unavailable store: {store_name}")
         else:
@@ -68,7 +69,7 @@ class ConfigurableStoreCrawler:
             
             for ingredient in ingredients:
                 # Generate mock products with store configuration
-                products = await self._generate_mock_products(ingredient, store_config)
+                # products = await self._generate_mock_products(ingredient, store_config)
                 
                 store_results.append(StoreSearchResult(
                     ingredient_name=ingredient.name,

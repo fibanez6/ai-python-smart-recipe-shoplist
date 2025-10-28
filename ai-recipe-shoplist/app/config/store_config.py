@@ -106,8 +106,8 @@ STORE_CONFIGS: Dict[str, StoreConfig] = {
         display_name="ALDI Australia",
         region=StoreRegion.AUSTRALIA,
         base_url="https://www.aldi.com.au",
-        search_url="https://www.aldi.com.au/en/groceries",
-        product_url_template="https://www.aldi.com.au/en/groceries/{product_id}",
+        search_url="https://www.aldi.com.au/products",
+        product_url_template="https://api.aldi.com.au/v3/product-search?currency=AUD&serviceType=walk-in&q={product_id}&limit=12&offset=0&sort=relevance&testVariant=A&servicePoint=G452",
         search_param="q",
         rate_limit_delay=2.0,  # More conservative for ALDI
         price_multiplier=0.85,  # ALDI typically cheaper

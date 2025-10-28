@@ -181,6 +181,17 @@ class AIService:
             logger.error(f"[AIService] Error generating shopping list: {e}")
             return ""
 
+    async def search_grocery_products(self, ingredients: List[Ingredient], 
+                                     store_names: List[str] = None) -> Dict[str, List[Dict[str, Any]]]:
+        """Search grocery stores for deals on ingredients using AI."""
+        logger.info(f"[AIService] Searching grocery products for ingredients using {self.provider_name} provider")
+
+
+        
+        
+        
+        return results
+
 # Global AI service instance
 ai_service = None
 

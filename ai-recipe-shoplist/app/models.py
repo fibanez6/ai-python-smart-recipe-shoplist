@@ -98,6 +98,11 @@ class Product(BaseModel):
     availability: bool = Field(True, description="Product availability")
 
 
+class SearchStoresRequest(BaseModel):
+    """Request to search stores for ingredients."""
+    ingredients: List[Ingredient] = Field(..., description="Ingredients to search")
+    stores: Optional[List[str]] = Field(None, description="Specific stores to search")
+
 class StoreSearchResult(BaseModel):
     """Result from searching a store for an ingredient."""
     ingredient_name: str = Field(..., description="Searched ingredient name")
@@ -141,12 +146,6 @@ class ProcessRecipeRequest(BaseModel):
     """Request to process a recipe URL."""
     url: str = Field(..., description="Recipe URL to process")
     servings_adjustment: Optional[int] = Field(None, description="Adjust servings")
-
-
-class SearchStoresRequest(BaseModel):
-    """Request to search stores for ingredients."""
-    ingredients: List[Ingredient] = Field(..., description="Ingredients to search")
-    stores: Optional[List[str]] = Field(None, description="Specific stores to search")
 
 
 class GenerateBillRequest(BaseModel):

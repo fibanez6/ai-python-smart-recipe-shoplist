@@ -275,7 +275,7 @@ SERVER_PORT=8000
 LOG_LEVEL=INFO
 LOG_TO_FILE=true
 LOG_FILE_PATH=logs/app.log
-DEBUG_ENABLED=false
+LOG_DEBUG_ENABLED=false
 
 # =================================================================
 # RETRY CONFIGURATION

@@ -8,7 +8,13 @@ import logging
 import re
 from typing import Any, Dict, List, Union
 
-from ..config.pydantic_config import LOG_MAX_LENGTH
+from ..config.pydantic_config import LOG_CHAT_MESSAGE_MAX_LENGTH, LOG_MAX_LENGTH
+from ..utils.str_helpers import (
+    count_chars,
+    count_words,
+    count_lines,
+)
+from ..services.tokenizer_service import TokenizerService  # Import TokenizerService
 
 # Get module logger
 logger = logging.getLogger(__name__)
@@ -171,8 +177,52 @@ def format_ai_prompt(template: str, **kwargs) -> str:
     except KeyError as e:
         raise ValueError(f"Missing required template parameter: {e}")
 
+def log_ai_token_stats(provider_name: str, text: str, tokenizer: TokenizerService, logger: logging.Logger, level: int = logging.DEBUG) -> None:
+    """
+    Log AI token usage statistics.
+    
+    Args:
+        provider_name: Name of the AI provider
+        token_stats: Dictionary with token statistics
+        logger: Logger instance
+        level: Logging level (e.g., logging.INFO)
+    """
+    if logger.isEnabledFor(level):
+        stats = {
+            "chars": count_chars(text),
+            "words": count_words(text),
+            "lines": count_lines(text),
+            "tokens": tokenizer.count_tokens(text)
+        }
+        logger.log(level, f"[{provider_name}] Content stats: {stats}")
 
-def log_ai_response(provider_name: str, response: str, logger: logging.Logger, level: int = logging.DEBUG) -> None:
+def log_ai_chat_query(provider_name: str, chat_params: List[Dict[str, str]], logger: logging.Logger, level: int = logging.DEBUG) -> None:
+    """
+    Log AI chat parameters statistics.
+    
+    Args:
+        provider_name: Name of the AI provider
+        messages: List of chat messages
+        logger: Logger instance
+        level: Logging level (e.g., logging.INFO)
+    """
+    if logger.isEnabledFor(level):
+        # Log chat parameters except messages
+        params_copy = {k: v for k, v in chat_params.items() if k != 'messages'}
+        if params_copy:
+            logger.debug(f"[{provider_name}] API call - chat params: {params_copy}")
+
+        # Log each message
+        for i, msg in enumerate(chat_params.get('messages', [])):
+            if  LOG_CHAT_MESSAGE_MAX_LENGTH == 0:
+                content = msg.get('content', '')
+            else:
+                content = msg.get('content', '')[:LOG_CHAT_MESSAGE_MAX_LENGTH] + '...' if len(msg.get('content', '')) > LOG_CHAT_MESSAGE_MAX_LENGTH else msg.get('content', '')
+            
+            content = content.replace(chr(10), '; ') # replace newlines for cleaner logging
+            logger.debug(f"[{provider_name}] Message {i+1} ({msg.get('role', 'unknown')}): {content}")
+
+def log_ai_chat_response(provider_name: str, response: str, logger: logging.Logger, level: int = logging.DEBUG) -> None:
     """
     Log AI response at specified log level.
     
@@ -182,8 +232,18 @@ def log_ai_response(provider_name: str, response: str, logger: logging.Logger, l
         logger: Logger instance
         level: Logging level (e.g., logging.DEBUG)
     """
+    usage = response.usage
+    stats = {
+            "Prompt tokens:": usage.prompt_tokens,
+            "Completion tokens:": usage.completion_tokens,
+            "Total tokens:": usage.total_tokens
+        }
+
+    logger.info(f"[{provider_name}] OpenAI API call stats: {stats} ")
+
     if logger.isEnabledFor(level):
-        content = response.parsed if hasattr(response, 'parsed') else response.content if hasattr(response, 'content') else response
+        message = response.choices[0].message
+        content = message.parsed if hasattr(message, 'parsed') else message.content if hasattr(message, 'content') else message
         if  LOG_MAX_LENGTH == 0:
             logger.log(level, f"[{provider_name}] AI Response:\n {content}")
         else:
@@ -204,6 +264,21 @@ HTML content:
 
 Return only valid JSON, no additional text.
 """
+
+SEARCH_GROCERY_PRODUCTS_SYSTEM = """
+You are a web crawler / price comparison assistant that searches for grocery products online — extracts the list of products and their details and return only valid JSON.
+
+Grocery stores to search:
+{grocery_stores_list}
+"""
+
+SEARCH_GROCERY_PRODUCTS_PROMPT = """
+Extract grocery product information from the grocery website for a list of ingredients:
+
+Ingredients:
+{ingredients}
+"""
+
 
 PRODUCT_MATCHING_SYSTEM = "You are a grocery shopping expert. Rank products by relevance and quality."
 

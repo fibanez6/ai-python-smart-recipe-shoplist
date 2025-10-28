@@ -53,7 +53,7 @@ def setup_logging(
     """
     
     # Get configuration from environment or parameters
-    debug_enabled = debug if debug is not None else os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
+    LOG_DEBUG_ENABLED = debug if debug is not None else os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
     log_level = level or os.getenv("LOG_LEVEL", "info").upper()
     
     # Default format string
@@ -64,7 +64,7 @@ def setup_logging(
     numeric_level = getattr(logging, log_level, logging.INFO)
     
     # Override to DEBUG if debug is enabled
-    if debug_enabled:
+    if LOG_DEBUG_ENABLED:
         numeric_level = logging.DEBUG
     
     # Clear any existing handlers to avoid duplicates
@@ -113,14 +113,14 @@ def setup_logging(
     app_logger.setLevel(numeric_level)
     
     # Log configuration info
-    app_logger.info(f"Logging configured - Level: {logging.getLevelName(numeric_level)}, Debug: {debug_enabled}")
+    app_logger.info(f"Logging configured - Level: {logging.getLevelName(numeric_level)}, Debug: {LOG_DEBUG_ENABLED}")
     
     if enable_file_logging:
        app_logger.info(
         {
             "event": "logging_configured",
             "level": logging.getLevelName(numeric_level),
-            "debug": debug_enabled,
+            "debug": LOG_DEBUG_ENABLED,
             "file_logging": enable_file_logging,
             "log_file": log_file if enable_file_logging else None,
         }
@@ -249,7 +249,7 @@ def log_api_request(provider: str, endpoint: str, payload_size: int = 0,
 
 
 # Environment-based configuration constants
-DEBUG_ENABLED = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
+LOG_DEBUG_ENABLED = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 LOG_FILE_ENABLED = os.getenv("LOG_FILE_ENABLED", "false").lower() in ("true", "1", "yes")
 LOG_FILE_PATH = os.getenv("LOG_FILE_PATH", "logs/app.log")
@@ -258,7 +258,7 @@ LOG_FILE_PATH = os.getenv("LOG_FILE_PATH", "logs/app.log")
 if not logging.getLogger().handlers:
     setup_logging(
         level=LOG_LEVEL,
-        debug=DEBUG_ENABLED,
+        debug=LOG_DEBUG_ENABLED,
         enable_file_logging=LOG_FILE_ENABLED,
         log_file=LOG_FILE_PATH
     )

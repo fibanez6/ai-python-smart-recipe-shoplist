@@ -1,0 +1,19 @@
+{
+  "ingredients": [
+    {
+        "name": "fresh tomatoes",
+        "quantity": 4,
+        "unit": "item",
+        "original_text": "4 large fresh tomatoes, peeled and diced",
+        "optional": false,
+        "category": "produce",
+        "alternatives": null,
+        "notes": "peeled and diced",
+        "quality": "fresh",
+        "brand_preference": null
+    }
+  ],
+  "stores": [
+    "Aldi"
+  ]
+}

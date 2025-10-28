@@ -241,28 +241,28 @@ async def search_stores(request: SearchStoresRequest):
             request.stores
         )
         
-        # Use AI to optimize product matching
-        ai_service = get_ai_service()
-        optimized_results = {}
+        # # Use AI to optimize product matching
+        # ai_service = get_ai_service()
+        # optimized_results = {}
         
-        for ingredient in request.ingredients:
-            # Convert store results to the expected format
-            ingredient_store_results = {}
-            for store_name, results in store_results.items():
-                ingredient_result = next(
-                    (r for r in results if r.ingredient_name == ingredient.name),
-                    None
-                )
-                if ingredient_result:
-                    ingredient_store_results[store_name] = ingredient_result.products
-                else:
-                    ingredient_store_results[store_name] = []
+        # for ingredient in request.ingredients:
+        #     # Convert store results to the expected format
+        #     ingredient_store_results = {}
+        #     for store_name, results in store_results.items():
+        #         ingredient_result = next(
+        #             (r for r in results if r.ingredient_name == ingredient.name),
+        #             None
+        #         )
+        #         if ingredient_result:
+        #             ingredient_store_results[store_name] = ingredient_result.products
+        #         else:
+        #             ingredient_store_results[store_name] = []
             
-            # Optimize product matching with AI
-            optimized_store_results = await ai_service.optimize_product_matching(
-                ingredient, ingredient_store_results
-            )
-            optimized_results[ingredient.name] = optimized_store_results
+        #     # Optimize product matching with AI
+        #     optimized_store_results = await ai_service.optimize_product_matching(
+        #         ingredient, ingredient_store_results
+        #     )
+        #     optimized_results[ingredient.name] = optimized_store_results
         
         print(f"[API] Store search completed with AI optimization")
         
@@ -270,7 +270,7 @@ async def search_stores(request: SearchStoresRequest):
             success=True,
             data={
                 "store_results": store_results,
-                "optimized_results": optimized_results,
+                # "optimized_results": optimized_results,
                 "stores_searched": list(store_results.keys())
             },
             timestamp=datetime.now().isoformat()

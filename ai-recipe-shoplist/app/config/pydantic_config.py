@@ -122,8 +122,9 @@ class LoggingSettings(BaseSettings):
     file_path: str = Field(default="logs/app.log", description="Log file path")
     max_size: int = Field(default=10485760, description="Maximum log file size (10MB)")
     backup_count: int = Field(default=5, description="Number of backup files to keep")
-    debug_enabled: bool = Field(default=False, description="Enable debug mode")
+    log_debug_enabled: bool = Field(default=False, description="Enable debug mode")
     max_length: int = Field(default=500, description="Maximum length in characters (0 = no limit)")
+    chat_message_max_length: int = Field(default=max_length, description="Maximum length of chat messages to log (0 = no limit)")
     
     model_config = ConfigDict(env_prefix="LOG_")
 
@@ -307,12 +308,13 @@ GITHUB_TEMPERATURE = settings.github.temperature
 GITHUB_TIMEOUT = settings.github.timeout
 
 LOG_LEVEL = settings.logging.level
+LOG_DEBUG_ENABLED = settings.logging.log_debug_enabled
 LOG_TO_FILE = settings.logging.to_file
 LOG_FILE_PATH = settings.logging.file_path
 LOG_MAX_SIZE = settings.logging.max_size
 LOG_MAX_LENGTH = settings.logging.max_length
+LOG_CHAT_MESSAGE_MAX_LENGTH = settings.logging.chat_message_max_length
 LOG_BACKUP_COUNT = settings.logging.backup_count
-DEBUG_ENABLED = settings.logging.debug_enabled
 
 SERVER_HOST = settings.server.host
 SERVER_PORT = settings.server.port
