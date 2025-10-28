@@ -123,6 +123,7 @@ class LoggingSettings(BaseSettings):
     max_size: int = Field(default=10485760, description="Maximum log file size (10MB)")
     backup_count: int = Field(default=5, description="Number of backup files to keep")
     debug_enabled: bool = Field(default=False, description="Enable debug mode")
+    max_length: int = Field(default=500, description="Maximum length in characters (0 = no limit)")
     
     model_config = ConfigDict(env_prefix="LOG_")
 
@@ -309,6 +310,7 @@ LOG_LEVEL = settings.logging.level
 LOG_TO_FILE = settings.logging.to_file
 LOG_FILE_PATH = settings.logging.file_path
 LOG_MAX_SIZE = settings.logging.max_size
+LOG_MAX_LENGTH = settings.logging.max_length
 LOG_BACKUP_COUNT = settings.logging.backup_count
 DEBUG_ENABLED = settings.logging.debug_enabled
 

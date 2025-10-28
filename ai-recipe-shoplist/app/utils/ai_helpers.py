@@ -2,10 +2,13 @@
 AI utility functions for response processing and data handling.
 """
 
+from email import message
 import json
 import logging
 import re
 from typing import Any, Dict, List, Union
+
+from ..config.pydantic_config import LOG_MAX_LENGTH
 
 # Get module logger
 logger = logging.getLogger(__name__)
@@ -167,6 +170,24 @@ def format_ai_prompt(template: str, **kwargs) -> str:
         return template.format(**kwargs)
     except KeyError as e:
         raise ValueError(f"Missing required template parameter: {e}")
+
+
+def log_ai_response(provider_name: str, response: str, logger: logging.Logger, level: int = logging.DEBUG) -> None:
+    """
+    Log AI response at specified log level.
+    
+    Args:
+        response: AI response string
+        provider_name: Name of the AI provider
+        logger: Logger instance
+        level: Logging level (e.g., logging.DEBUG)
+    """
+    if logger.isEnabledFor(level):
+        content = response.parsed if hasattr(response, 'parsed') else response.content if hasattr(response, 'content') else response
+        if  LOG_MAX_LENGTH == 0:
+            logger.log(level, f"[{provider_name}] AI Response:\n {content}")
+        else:
+            logger.log(level, f"[{provider_name}] AI Response:\n {content[:LOG_MAX_LENGTH]}{'...' if len(content) > LOG_MAX_LENGTH else ''}")
 
 
 # Common prompt templates

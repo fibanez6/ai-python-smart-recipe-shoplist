@@ -1,0 +1,259 @@
+{
+  "success": true,
+  "data": {
+    "recipe": {
+      "title": "Chef John's Gazpacho",
+      "url": "https://www.allrecipes.com/recipe/chef-johns-gazpacho",
+      "description": "A refreshing cold soup made with fresh vegetables, perfect for summer.",
+      "servings": 6,
+      "prep_time": "45 mins",
+      "cook_time": "2 hrs",
+      "ingredients": [
+        {
+          "name": "fresh tomatoes",
+          "quantity": 4,
+          "unit": "item",
+          "original_text": "4 large fresh tomatoes, peeled and diced",
+          "optional": false,
+          "category": "produce",
+          "alternatives": null,
+          "notes": "peeled and diced",
+          "quality": "fresh",
+          "brand_preference": null
+        },
+        {
+          "name": "English cucumber",
+          "quantity": 0.5,
+          "unit": "item",
+          "original_text": "½ English cucumber, peeled and finely diced",
+          "optional": false,
+          "category": "produce",
+          "alternatives": null,
+          "notes": "peeled and finely diced",
+          "quality": "fresh",
+          "brand_preference": null
+        },
+        {
+          "name": "red bell pepper",
+          "quantity": 0.5,
+          "unit": "cup",
+          "original_text": "½ cup finely diced red bell pepper",
+          "optional": false,
+          "category": "produce",
+          "alternatives": null,
+          "notes": "finely diced",
+          "quality": "fresh",
+          "brand_preference": null
+        },
+        {
+          "name": "green onion",
+          "quantity": 0.25,
+          "unit": "cup",
+          "original_text": "¼ cup minced green onion",
+          "optional": false,
+          "category": "produce",
+          "alternatives": null,
+          "notes": "minced",
+          "quality": "fresh",
+          "brand_preference": null
+        },
+        {
+          "name": "jalapeño pepper",
+          "quantity": 1,
+          "unit": "item",
+          "original_text": "1 large jalapeño pepper, seeded and minced",
+          "optional": false,
+          "category": "produce",
+          "alternatives": null,
+          "notes": "seeded and minced",
+          "quality": "fresh",
+          "brand_preference": null
+        },
+        {
+          "name": "garlic",
+          "quantity": 2,
+          "unit": "clove",
+          "original_text": "2 cloves garlic, minced",
+          "optional": false,
+          "category": "produce",
+          "alternatives": null,
+          "notes": "minced",
+          "quality": "fresh",
+          "brand_preference": null
+        },
+        {
+          "name": "salt",
+          "quantity": 1,
+          "unit": "tsp",
+          "original_text": "1 teaspoon salt",
+          "optional": false,
+          "category": "spices",
+          "alternatives": null,
+          "notes": null,
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "ground cumin",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "original_text": "½ teaspoon ground cumin",
+          "optional": false,
+          "category": "spices",
+          "alternatives": null,
+          "notes": null,
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "dried oregano",
+          "quantity": 1,
+          "unit": "pinch",
+          "original_text": "1 pinch dried oregano",
+          "optional": false,
+          "category": "spices",
+          "alternatives": null,
+          "notes": null,
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "cayenne pepper",
+          "quantity": 1,
+          "unit": "pinch",
+          "original_text": "1 pinch cayenne pepper, or to taste",
+          "optional": true,
+          "category": "spices",
+          "alternatives": null,
+          "notes": "or to taste",
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "black pepper",
+          "quantity": null,
+          "unit": "to taste",
+          "original_text": "freshly ground black pepper to taste",
+          "optional": false,
+          "category": "spices",
+          "alternatives": null,
+          "notes": "freshly ground",
+          "quality": "fresh",
+          "brand_preference": null
+        },
+        {
+          "name": "cherry tomatoes",
+          "quantity": 1,
+          "unit": "pinch",
+          "original_text": "1 pint cherry tomatoes",
+          "optional": false,
+          "category": "produce",
+          "alternatives": null,
+          "notes": null,
+          "quality": "fresh",
+          "brand_preference": null
+        },
+        {
+          "name": "extra-virgin olive oil",
+          "quantity": 0.25,
+          "unit": "cup",
+          "original_text": "¼ cup extra-virgin olive oil",
+          "optional": false,
+          "category": "oils",
+          "alternatives": null,
+          "notes": null,
+          "quality": "extra-virgin",
+          "brand_preference": null
+        },
+        {
+          "name": "lime",
+          "quantity": 1,
+          "unit": "item",
+          "original_text": "1 lime, juiced",
+          "optional": false,
+          "category": "produce",
+          "alternatives": null,
+          "notes": "juiced",
+          "quality": "fresh",
+          "brand_preference": null
+        },
+        {
+          "name": "balsamic vinegar",
+          "quantity": 1,
+          "unit": "tbsp",
+          "original_text": "1 tablespoon balsamic vinegar",
+          "optional": false,
+          "category": "condiments",
+          "alternatives": null,
+          "notes": null,
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "Worcestershire sauce",
+          "quantity": 1,
+          "unit": "tsp",
+          "original_text": "1 teaspoon Worcestershire sauce",
+          "optional": false,
+          "category": "condiments",
+          "alternatives": null,
+          "notes": null,
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "salt",
+          "quantity": null,
+          "unit": "to taste",
+          "original_text": "salt to taste",
+          "optional": true,
+          "category": "spices",
+          "alternatives": null,
+          "notes": "to taste",
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "black pepper",
+          "quantity": null,
+          "unit": "to taste",
+          "original_text": "ground black pepper to taste",
+          "optional": true,
+          "category": "spices",
+          "alternatives": null,
+          "notes": "to taste",
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "fresh basil",
+          "quantity": 2,
+          "unit": "tbsp",
+          "original_text": "2 tablespoons thinly sliced fresh basil",
+          "optional": false,
+          "category": "produce",
+          "alternatives": null,
+          "notes": "thinly sliced",
+          "quality": "fresh",
+          "brand_preference": null
+        }
+      ],
+      "instructions": [
+        "Combine diced tomatoes, cucumber, bell pepper, green onion, jalapeño, and garlic in a large bowl. Stir in salt, cumin, oregano, cayenne pepper, and black pepper.",
+        "Place cherry tomatoes, olive oil, lime juice, balsamic vinegar, and Worcestershire sauce in a blender. Cover and purée until smooth.",
+        "Pour puréed mixture through a strainer into the tomato-cucumber mixture; stir to combine.",
+        "Place 1/3 of the tomato mixture into the blender. Cover, turn blender on, and purée until smooth. Return puréed mixture to the remaining tomato-cucumber mixture. Stir to combine. Cover and chill in the refrigerator for 2 hours.",
+        "Season cold soup with salt and black pepper to taste. Ladle into bowls and top with basil."
+      ],
+      "image_url": null
+    },
+    "message": "Successfully extracted recipe: Chef John's Gazpacho",
+    "fetch_info": {
+      "from_cache": false,
+      "content_size": 588686,
+      "final_url": "https://www.allrecipes.com/recipe/222331/chef-johns-gazpacho/"
+    }
+  },
+  "error": null,
+  "timestamp": "2025-10-29T08:42:12.976608"
+}

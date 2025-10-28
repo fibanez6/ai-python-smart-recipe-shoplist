@@ -15,6 +15,7 @@ from ..utils.ai_helpers import (
     RECIPE_EXTRACTION_PROMPT,
     RECIPE_EXTRACTION_SYSTEM,
     format_ai_prompt,
+    log_ai_response,
     safe_json_parse,
 )
 from ..utils.str_helpers import (
@@ -141,16 +142,12 @@ class BaseAIProvider(ABC):
 
                 message = response.choices[0].message
 
-                if logger.isEnabledFor(logging.DEBUG):
-                    if message.parsed:
-                        logger.debug(f"[{self.name}] OpenAI response object: {message.parsed}")
-                    else:
-                        logger.debug(f"[{self.name}] OpenAI response preview: {message.content[:300]}{'...' if len(message.content) > 300 else ''}")
+                log_ai_response(self.name, message, logger, level=logging.DEBUG)
 
                 return ChatMessageResult(
-                    content=message.content,
-                    parsed=message.parsed,
-                    refusal=message.refusal
+                    content=message.content or None,
+                    parsed=getattr(message, "parsed", None),
+                    refusal=getattr(message, "refusal", None)
                 )
             except Exception as e:
                 # Convert provider-specific errors to our retry framework

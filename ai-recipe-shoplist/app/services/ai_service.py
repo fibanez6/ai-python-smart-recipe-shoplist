@@ -132,7 +132,7 @@ class AIService:
         
         return optimized_results
     
-    async def suggest_alternatives(self, ingredient: Ingredient) -> List[str]:
+    async def suggest_alternatives(self, ingredient: Ingredient) -> str:
         """Suggest alternative ingredients using AI."""
         system = "You are a culinary expert. Suggest ingredient alternatives."
         
@@ -161,40 +161,25 @@ class AIService:
 
     async def shopping_assistant(self, url: str) -> List[Dict[str, Any]]:
         """Generate a structured shopping list using AI."""
-        system = RECIPE_SHOPPING_ASSISTANT_SYSTEM
 
         logger.info(f"[AIService] Generating shopping list for recipe URL: {url}")
 
         prompt = format_ai_prompt(RECIPE_SHOPPING_ASSISTANT_PROMPT, url=url)
 
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"[AIService] [shopping_assistant] System message: {system}")
-            logger.debug(f"[AIService] [shopping_assistant] User message: {prompt}")
+        chat_params = {
+            "messages": [
+                {"role": "system", "content": RECIPE_SHOPPING_ASSISTANT_SYSTEM},
+                {"role": "user", "content": prompt}
+            ]
+        }
 
-        messages = [
-            {"role": "system", "content": system},
-            {"role": "user", "content": prompt}
-        ]
-        
         try:
-            response = await self.provider.complete_chat(messages, max_tokens=1000)
-            
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(f"[AIService] [shopping_assistant] Raw response: {response[:200]}...")
+            response = await self.provider.complete_chat(chat_params, max_tokens=10000)
+            return response.content
 
-            return {
-                "title": "Recipe from " + url,
-                "description": "",
-                "servings": None,
-                "prep_time": None,
-                "cook_time": None,
-                "ingredients": [],
-                "instructions": [],
-                "image_url": None
-            }
         except Exception as e:
             logger.error(f"[AIService] Error generating shopping list: {e}")
-            return []
+            return ""
 
 # Global AI service instance
 ai_service = None

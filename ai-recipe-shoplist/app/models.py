@@ -52,6 +52,11 @@ class Ingredient(BaseModel):
     unit: Optional[QuantityUnit] = Field(QuantityUnit.DEFAULT, description="Unit of measurement")
     original_text: str = Field(..., description="Original ingredient text from recipe")
     optional: bool = Field(False, description="Whether ingredient is optional")
+    category: Optional[str] = Field(None, description="Ingredient category (e.g., dairy, produce)")
+    alternatives: Optional[List[str]] = Field(None, description="List of alternative ingredient names")
+    notes: Optional[str] = Field(None, description="Additional short note about the ingredient")
+    quality: Optional[str] = Field(None, description="Quality descriptor (e.g., organic, fresh)")
+    brand_preference: Optional[str] = Field(None, description="Preferred brand for the ingredient")
 
 
 class Recipe(BaseModel):
