@@ -7,7 +7,7 @@ Useful for development, testing, and demonstrations without API costs.
 import json
 import random
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from ..config.logging_config import get_logger
 from .base_provider import BaseAIProvider
@@ -56,7 +56,7 @@ class StubProvider(BaseAIProvider):
                     except Exception as e:
                         logger.error(f"Error loading mock response {response_file}: {e}")
     
-    async def complete_chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
+    async def complete_chat(self, messages: list[dict[str, str]], **kwargs) -> str:
         """Complete a chat conversation using stub responses."""
         logger.debug(f"Stub chat completion - Messages: {len(messages)}")
         
@@ -77,7 +77,7 @@ class StubProvider(BaseAIProvider):
         else:
             return json.dumps({"response": "This is a stub response for development/testing"})
     
-    async def extract_recipe_data(self, html_content: str, url: str) -> Dict[str, Any]:
+    async def extract_recipe_data(self, html_content: str, url: str) -> dict[str, Any]:
         """Extract structured recipe data using stub responses."""
         logger.debug(f"Stub recipe extraction - URL: {url}")
         
@@ -106,7 +106,7 @@ class StubProvider(BaseAIProvider):
         
         return self._get_default_recipe_analysis()
     
-    async def match_products(self, ingredient: str, products: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    async def match_products(self, ingredient: str, products: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Match and rank products using stub responses."""
         logger.debug(f"Stub product matching - Ingredient: {ingredient}, Products: {len(products)}")
         
@@ -131,7 +131,7 @@ class StubProvider(BaseAIProvider):
         
         return self._get_default_product_matches(ingredient, products)
     
-    def _get_recipe_stub_response(self) -> Dict[str, Any]:
+    def _get_recipe_stub_response(self) -> dict[str, Any]:
         """Get a stub response for recipe-related queries."""
         return {
             "recipe_name": "Stub Recipe",
@@ -142,7 +142,7 @@ class StubProvider(BaseAIProvider):
             "cook_time": "20 minutes"
         }
     
-    def _get_shopping_stub_response(self) -> Dict[str, Any]:
+    def _get_shopping_stub_response(self) -> dict[str, Any]:
         """Get a stub response for shopping-related queries."""
         return {
             "shopping_plan": {
@@ -152,7 +152,7 @@ class StubProvider(BaseAIProvider):
             }
         }
     
-    def _get_bill_stub_response(self) -> Dict[str, Any]:
+    def _get_bill_stub_response(self) -> dict[str, Any]:
         """Get a stub response for bill-related queries."""
         return {
             "total_cost": 25.99,
@@ -163,7 +163,7 @@ class StubProvider(BaseAIProvider):
             "final_total": 28.07
         }
     
-    def _get_default_recipe_analysis(self) -> Dict[str, Any]:
+    def _get_default_recipe_analysis(self) -> dict[str, Any]:
         """Get a default recipe analysis response when no mock data is available."""
         return {
             "title": "Stub Recipe Analysis",
@@ -184,7 +184,7 @@ class StubProvider(BaseAIProvider):
             "image_url": None
         }
     
-    def _get_default_normalized_ingredients(self, ingredients: List[str]) -> List[Dict[str, Any]]:
+    def _get_default_normalized_ingredients(self, ingredients: list[str]) -> list[dict[str, Any]]:
         """Get default normalized ingredients when no mock data is available."""
         normalized = []
         for ing in ingredients:
@@ -198,7 +198,7 @@ class StubProvider(BaseAIProvider):
             })
         return normalized
     
-    def _get_default_product_matches(self, ingredient: str, products: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _get_default_product_matches(self, ingredient: str, products: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Get default product matches when no mock data is available."""
         if not products:
             return [{
@@ -222,7 +222,7 @@ class StubProvider(BaseAIProvider):
         
         return scored_products
     
-    def get_available_responses(self) -> Dict[str, List[str]]:
+    def get_available_responses(self) -> dict[str, list[str]]:
         """
         Get a list of all available mock responses.
         

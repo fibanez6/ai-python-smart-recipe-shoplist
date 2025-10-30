@@ -5,7 +5,7 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar
+from typing import Awaitable, Callable, Optional, TypeVar
 
 import httpx
 
@@ -63,7 +63,7 @@ class RateLimiter:
     
     def __init__(self, requests_per_minute: int = 15):
         self.requests_per_minute = requests_per_minute
-        self.request_times: List[float] = []
+        self.request_times: list[float] = []
     
     async def wait_if_needed(self):
         """Wait if rate limit would be exceeded."""

@@ -1,7 +1,5 @@
 """Ollama local LLM provider implementation."""
 
-from typing import Dict, List
-
 from ..config.logging_config import get_logger
 from ..config.pydantic_config import OLLAMA_SETTINGS
 from ..utils.retry_utils import (
@@ -41,7 +39,7 @@ class OllamaProvider(BaseAIProvider):
         except Exception as e:
             raise ConnectionError(f"Cannot connect to Ollama at {OLLAMA_SETTINGS.host}: {e}")
 
-    async def complete_chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
+    async def complete_chat(self, messages: list[dict[str, str]], **kwargs) -> str:
         """Complete a chat conversation using Ollama with tenacity retry logic."""
         
         @with_ai_retry(self.retry_config)

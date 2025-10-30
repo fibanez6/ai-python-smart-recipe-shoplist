@@ -2,7 +2,7 @@
 
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import httpx
 
@@ -37,7 +37,7 @@ class WebFetcher:
         logger.info(f"[{self.name}] initialized - Timeout: {self.timeout}s, Max size: {self.max_content_size} bytes")
         logger.info(f"[{self.name}] tmp folder: {self.tmp_folder}")
     
-    async def fetch_url(self, url: str, use_cache: bool = True) -> Dict[str, Any]:
+    async def fetch_url(self, url: str, use_cache: bool = True) -> dict[str, Any]:
         """
         Fetch content from a URL with optional caching and robust error handling.
 
@@ -46,7 +46,7 @@ class WebFetcher:
             use_cache (bool): Whether to use cached content if available.
 
         Returns:
-            Dict[str, Any]: Dictionary with:
+            dict[str, Any]: Dictionary with:
             - content (str): HTML content.
             - url (str): Final URL after redirects.
             - status_code (int): HTTP status code.
@@ -118,18 +118,18 @@ class WebFetcher:
             logger.error(f"[{self.name}] Error fetching {url}: {e}")
             raise
 
-    async def fetch_html_content(self, url: str, html_selectors: Dict[str, str] = {}, clean_html: bool = True, use_cache: bool = True) -> Dict[str, Any]:
+    async def fetch_html_content(self, url: str, html_selectors: dict[str, str] = {}, clean_html: bool = True, use_cache: bool = True) -> dict[str, Any]:
         """
         Fetch HTML content from a URL, optionally clean it, and apply HTML selectors.
 
         Args:
             url (str): The URL to fetch HTML content from.
-            html_selectors (Dict[str, str], optional): CSS selectors for extracting specific HTML parts.
+            html_selectors (dict[str, str], optional): CSS selectors for extracting specific HTML parts.
             clean_html (bool): Whether to clean the HTML content for AI use.
             use_cache (bool): Whether to use cached content if available.
 
         Returns:
-            Dict[str, Any]: Dictionary with:
+            dict[str, Any]: Dictionary with:
             - content (str): Raw HTML content.
             - cleaned_content (str, optional): Cleaned HTML content if requested.
             - saved_files (dict, optional): Paths to saved files if content was saved.

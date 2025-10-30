@@ -2,12 +2,13 @@
 HTML helper functions for the recipe shoplist crawler.
 """
 import logging
-from pathlib import Path
-from bs4 import BeautifulSoup, Comment  
-from typing import Dict
+
+from bs4 import BeautifulSoup, Comment
 
 from app.config.logging_config import get_logger, log_function_call, setup_logging
+
 from ..config.pydantic_config import FETCHER_SETTINGS
+
 
 def remove_html_scripts_and_styles(soup: BeautifulSoup) -> None:
     """Remove script and style elements from the BeautifulSoup object."""
@@ -72,7 +73,7 @@ def clean_html(html_content: str) -> str:
         logger.warning(f"[WebFetcher] Error cleaning HTML: {e}, returning original content")
         return html_content
     
-def clean_html_with_selectors(html_content: str, selectors: Dict[str, str]) -> list[dict]:
+def clean_html_with_selectors(html_content: str, selectors: dict[str, str]) -> list[dict]:
     """
     Clean HTML content for AI processing using specific CSS selectors.
     
@@ -115,7 +116,7 @@ def clean_html_with_selectors(html_content: str, selectors: Dict[str, str]) -> l
         return html_content
     
 
-def clean_html_for_ai(html_content: str, selectors: Dict[str, str]) -> str | list[dict]:
+def clean_html_for_ai(html_content: str, selectors: dict[str, str]) -> str | list[dict]:
     """Wrapper to clean HTML content for AI processing."""
     if selectors:
         return clean_html_with_selectors(html_content, selectors)

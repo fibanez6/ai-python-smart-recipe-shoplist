@@ -2,7 +2,7 @@
 
 
 import time
-from typing import Any, Dict
+from typing import Any
 
 from cachetools import TTLCache
 
@@ -26,7 +26,7 @@ class CacheManager:
 
         logger.info(f"[{self.name}] Using TTLCache (maxsize={self.max_size}, ttl={self.ttl}s)")
 
-    def get_from_memory_cache(self, url: str) -> Dict[str, Any] | None:
+    def get_from_memory_cache(self, url: str) -> dict[str, Any] | None:
         """
         Get content from in-memory cache if available and not expired.
         """
@@ -41,7 +41,7 @@ class CacheManager:
         except KeyError:
             return None
     
-    def save_to_memory_cache(self, url: str, data: Dict[str, Any]) -> None:
+    def save_to_memory_cache(self, url: str, data: dict[str, Any]) -> None:
         """
         Save content to in-memory cache.
         """
@@ -54,7 +54,7 @@ class CacheManager:
         logger.debug(f"[{self.name}] Saved content to for {url}")
     
     
-    def get_cached_content(self, url: str, use_cache: bool = True) -> Dict[str, Any] | None:
+    def get_cached_content(self, url: str, use_cache: bool = True) -> dict[str, Any] | None:
         """
         Get cached content from in-memory cache.
         """
@@ -62,7 +62,7 @@ class CacheManager:
             return None
         return self.get_from_memory_cache(url)
     
-    def save_fetch_content(self, url: str, data: Dict[str, Any], use_cache: bool = True) -> None:
+    def save_fetch_content(self, url: str, data: dict[str, Any], use_cache: bool = True) -> None:
         """
         Save content to in-memory cache.
         """
@@ -72,7 +72,7 @@ class CacheManager:
         content_length = data.get("size", 0)
         logger.debug(f"[{self.name}] Cached content for {url} ({content_length} bytes)")
     
-    def clear_cache(self, clear_file_cache: bool = True) -> Dict[str, int]:
+    def clear_cache(self, clear_file_cache: bool = True) -> dict[str, int]:
         """
         Clear all in-memory cache entries.
         """
@@ -84,7 +84,7 @@ class CacheManager:
         logger.info(f"[{self.name}] Cleared all cache entries.")
         return {"cachetools_cleared": cleared}
     
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get cache statistics (only)."""
 
         if not self.enabled:

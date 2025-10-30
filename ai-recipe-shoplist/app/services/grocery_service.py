@@ -1,6 +1,6 @@
 """Store crawler with configurable store support."""
 
-from typing import Dict, List, Optional
+from typing import Optional
 
 from ..config.logging_config import get_logger, log_function_call
 from ..config.store_config import (
@@ -34,7 +34,7 @@ class GroceryService:
         """Get configuration for a specific store."""
         return get_store_config(store_id)
     
-    def get_stores(self, store_names: List[str] = None) -> List[StoreConfig]:
+    def get_stores(self, store_names: list[str] = None) -> list[StoreConfig]:
         """Return a list of (store_name, config) pairs for the requested or all stores."""
         log_function_call("GroceryService.get_stores", { "store_names": store_names })
 
@@ -57,11 +57,11 @@ class GroceryService:
         # Return list of (store_name, config) pairs
         return [get_store_config(store_name) for store_name in active_stores]
     
-    def get_available_stores(self) -> List[str]:
+    def get_available_stores(self) -> list[str]:
         """Get list of available stores for current region."""
         return self.stores.copy()
     
-    def get_store_info(self, store_id: str) -> Optional[Dict]:
+    def get_store_info(self, store_id: str) -> Optional[dict]:
         """Get detailed store information."""
         config = get_store_config(store_id)
         if not config:
@@ -78,7 +78,7 @@ class GroceryService:
             "price_multiplier": config.price_multiplier
         }
     
-    def get_all_stores_info(self) -> Dict[str, Dict]:
+    def get_all_stores_info(self) -> dict[str, dict]:
         """Get information for all available stores."""
         return {
             store_id: self.get_store_info(store_id) 

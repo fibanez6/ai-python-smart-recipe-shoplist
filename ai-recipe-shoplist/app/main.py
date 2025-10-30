@@ -2,13 +2,12 @@
 
 import json
 from datetime import datetime
-from typing import List
 
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 # Load environment variables
@@ -204,7 +203,7 @@ async def search_stores(request: SearchStoresRequest):
 
         # Search all stores (or specified stores)
         stores = [store.lower() for store in request.stores]
-        ingredients: List[Ingredient] = request.ingredients
+        ingredients: list[Ingredient] = request.ingredients
 
         stores = grocery_service.get_stores(stores)
 

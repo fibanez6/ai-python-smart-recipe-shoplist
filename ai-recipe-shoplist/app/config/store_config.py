@@ -5,8 +5,7 @@ Contains store metadata, URLs, and search parameters.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
-
+from typing import Optional
 
 class StoreRegion(str, Enum):
     """Supported store regions."""
@@ -51,7 +50,7 @@ class StoreConfig:
     supports_click_collect: bool = True
     
     # Selectors for web scraping (CSS selectors)
-    html_selectors: Optional[Dict[str, str]] = None
+    html_selectors: Optional[dict[str, str]] = None
     
     def get_search_url(self, query: str) -> str:
         """Generate search URL for a query."""
@@ -67,7 +66,7 @@ class StoreConfig:
         return f"{self.name}: {self.get_search_url(product_name)}"
 
 # Australian grocery stores
-STORE_CONFIGS: Dict[str, StoreConfig] = {
+STORE_CONFIGS: dict[str, StoreConfig] = {
     "coles": StoreConfig(
         store_id="coles",
         name="Coles",
@@ -178,18 +177,18 @@ def get_store_config(store_id: str) -> Optional[StoreConfig]:
     return STORE_CONFIGS.get(store_id)
 
 
-def get_stores_by_region(region: StoreRegion) -> List[StoreConfig]:
+def get_stores_by_region(region: StoreRegion) -> list[StoreConfig]:
     """Get all stores in a specific region."""
     store_ids = REGIONAL_STORES.get(region, [])
     return [STORE_CONFIGS[store_id] for store_id in store_ids if store_id in STORE_CONFIGS]
 
 
-def get_all_store_ids() -> List[str]:
+def get_all_store_ids() -> list[str]:
     """Get all available store IDs."""
     return list(STORE_CONFIGS.keys())
 
 
-def get_active_stores(region: StoreRegion = StoreRegion.AUSTRALIA) -> List[str]:
+def get_active_stores(region: StoreRegion = StoreRegion.AUSTRALIA) -> list[str]:
     """Get active store IDs for a region."""
     return REGIONAL_STORES.get(region, [])
 
@@ -199,7 +198,7 @@ def validate_store_id(store_id: str) -> bool:
     return store_id in STORE_CONFIGS
 
 
-def get_store_display_names() -> Dict[str, str]:
+def get_store_display_names() -> dict[str, str]:
     """Get mapping of store IDs to display names."""
     return {store_id: config.display_name for store_id, config in STORE_CONFIGS.items()}
 

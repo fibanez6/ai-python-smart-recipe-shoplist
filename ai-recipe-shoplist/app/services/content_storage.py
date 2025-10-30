@@ -4,7 +4,6 @@ import hashlib
 import json
 import time
 from pathlib import Path
-from typing import Dict
 
 from ..config.logging_config import get_logger, log_function_call
 from ..config.pydantic_config import STORAGE_SETTINGS
@@ -47,20 +46,20 @@ class ContentStorage:
         """Generate a hash for the URL to use as filename base."""
         return hashlib.md5(url.encode()).hexdigest()
     
-    def save_fetch_content(self, url: str, fetch_content: Dict[str, str]) -> Dict[str, str]:
+    def save_fetch_content(self, url: str, fetch_content: dict[str, str]) -> dict[str, str]:
         """
         Save both original and cleaned content to separate files on disk.
 
         Args:
             url: URL of the content
-            fetch_content: Dict containing original and optionally cleaned HTML content.
+            fetch_content: dict containing original and optionally cleaned HTML content.
             - "content": Original HTML content (required)
             - "cleaned_content": Cleaned HTML content (optional)
             - "loaded_content_from_disk": True if loaded from disk (optional)
             - "loaded_cleaned_content_from_disk": True if cleaned content loaded from disk (optional)
 
         Returns:
-            Dict with file paths of saved content (empty if saving disabled)
+            dict with file paths of saved content (empty if saving disabled)
         """
         if not self.enable_saving:
             logger.debug(f"[{self.name}] Content saving disabled for {url}")
@@ -131,7 +130,7 @@ class ContentStorage:
 
         return saved_files
     
-    def load_html_content(self, url: str) -> Dict[str, str]:
+    def load_html_content(self, url: str) -> dict[str, str]:
         """
         Load both original and cleaned content from disk if available.
         
@@ -139,7 +138,7 @@ class ContentStorage:
             url: URL of the content
             
         Returns:
-            Dict with content loaded from disk (empty if not found or loading disabled)
+            dict with content loaded from disk (empty if not found or loading disabled)
         """
         if not self.enable_loading:
             logger.debug(f"[{self.name}] Content loading disabled for {url}")
@@ -237,7 +236,7 @@ class ContentStorage:
         logger.info(f"[{self.name}] Cleared {content_files_count} content files")
         return content_files_count
     
-    def get_content_stats(self) -> Dict[str, any]:
+    def get_content_stats(self) -> dict[str, any]:
         """Get content storage statistics."""
         content_files_count = 0
         content_files_size = 0

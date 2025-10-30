@@ -1,7 +1,7 @@
 """Data models for the recipe shoplist application."""
 
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -55,7 +55,7 @@ class Ingredient(BaseModel):
     original_text: str = Field(..., description="Original ingredient text from recipe")
     optional: bool = Field(False, description="Whether ingredient is optional")
     category: Optional[str] = Field(None, description="Ingredient category (e.g., dairy, produce)")
-    alternatives: Optional[List[str]] = Field(None, description="List of alternative ingredient names")
+    alternatives: Optional[list[str]] = Field(None, description="List of alternative ingredient names")
     notes: Optional[str] = Field(None, description="Additional short note about the ingredient")
     quality: Optional[str] = Field(None, description="Quality descriptor (e.g., organic, fresh)")
     brand_preference: Optional[str] = Field(None, description="Preferred brand for the ingredient")
@@ -75,8 +75,8 @@ class Recipe(BaseModel):
     servings: Optional[int] = Field(None, description="Number of servings")
     prep_time: Optional[str] = Field(None, description="Preparation time")
     cook_time: Optional[str] = Field(None, description="Cooking time")
-    ingredients: List[Ingredient] = Field(..., description="List of ingredients")
-    instructions: List[str] = Field(default_factory=list, description="Cooking instructions")
+    ingredients: list[Ingredient] = Field(..., description="List of ingredients")
+    instructions: list[str] = Field(default_factory=list, description="Cooking instructions")
     image_url: Optional[str] = Field(None, description="Recipe image URL")
 
     @staticmethod
@@ -114,7 +114,7 @@ class Product(BaseModel):
 
 class ShopphingCart(BaseModel):
     """Represents a shopping cart with products."""
-    products: List[Product] = Field(..., description="List of products in the cart")
+    products: list[Product] = Field(..., description="List of products in the cart")
     total_price: float = Field(..., description="Total price of the cart")
     store: str = Field(..., description="Store name")
 
@@ -129,14 +129,14 @@ class ShopphingCart(BaseModel):
 
 class SearchStoresRequest(BaseModel):
     """Request to search stores for ingredients."""
-    ingredients: List[Ingredient] = Field(..., description="Ingredients to search")
-    stores: Optional[List[str]] = Field(None, description="Specific stores to search")
+    ingredients: list[Ingredient] = Field(..., description="Ingredients to search")
+    stores: Optional[list[str]] = Field(None, description="Specific stores to search")
 
 class StoreSearchResult(BaseModel):
     """Result from searching a store for an ingredient."""
     ingredient_name: str = Field(..., description="Searched ingredient name")
     store_name: str = Field(..., description="Store that was searched")
-    products: List[Product] = Field(default_factory=list, description="Found products")
+    products: list[Product] = Field(default_factory=list, description="Found products")
     search_time: Optional[float] = Field(None, description="Search duration in seconds")
 
 
@@ -146,14 +146,14 @@ class ShoppingListItem(BaseModel):
     selected_product: Optional[Product] = Field(None, description="Selected product")
     quantity_needed: float = Field(..., description="Quantity needed for recipe")
     estimated_cost: Optional[float] = Field(None, description="Estimated cost")
-    store_options: Optional[Dict[str, Product]] = Field(None, description="Available products from different stores")
+    store_options: Optional[dict[str, Product]] = Field(None, description="Available products from different stores")
 
 
 class OptimizationResult(BaseModel):
     """Result of price optimization across stores."""
-    items: List[ShoppingListItem] = Field(..., description="Optimized shopping list")
+    items: list[ShoppingListItem] = Field(..., description="Optimized shopping list")
     total_cost: float = Field(..., description="Total estimated cost")
-    stores_breakdown: Dict[str, float] = Field(..., description="Cost per store")
+    stores_breakdown: dict[str, float] = Field(..., description="Cost per store")
     savings: Optional[float] = Field(None, description="Savings vs. single store")
 
 
@@ -162,13 +162,13 @@ class Bill(BaseModel):
     id: str = Field(..., description="Unique bill identifier")
     recipe_title: str = Field(..., description="Recipe name")
     generated_at: str = Field(..., description="Generation timestamp")
-    items: List[ShoppingListItem] = Field(..., description="Bill items")
+    items: list[ShoppingListItem] = Field(..., description="Bill items")
     subtotal: float = Field(..., description="Subtotal before tax")
     tax_rate: float = Field(0.1, description="Tax rate")
     tax_amount: float = Field(..., description="Tax amount")
     total: float = Field(..., description="Total amount")
-    stores: List[str] = Field(..., description="Stores to visit")
-    stores_breakdown: Optional[Dict[str, float]] = Field(None, description="Cost breakdown by store")
+    stores: list[str] = Field(..., description="Stores to visit")
+    stores_breakdown: Optional[dict[str, float]] = Field(None, description="Cost breakdown by store")
 
 
 class ProcessRecipeRequest(BaseModel):

@@ -6,7 +6,6 @@ Centralized logging configuration for the AI Recipe Shoplist Crawler.
 
 import logging
 import os
-from datetime import time
 from typing import Optional
 
 from rich.console import Console

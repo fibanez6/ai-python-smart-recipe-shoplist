@@ -5,6 +5,7 @@ This module provides type-safe, validated configuration with automatic
 environment variable loading and .env file support.
 """
 from pathlib import Path
+
 from pydantic import ConfigDict, Field, field_validator
 from pydantic_settings import BaseSettings
 from typing_extensions import Literal, get_args

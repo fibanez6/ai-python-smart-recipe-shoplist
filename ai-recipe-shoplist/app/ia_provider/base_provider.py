@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any
 
 from ..config.logging_config import get_logger, log_function_call
 from ..config.store_config import StoreConfig
@@ -183,7 +183,7 @@ class BaseAIProvider(ABC):
             # Return minimal structure if parsing fails
             return Recipe.default()
 
-    async def search_best_match_products(self, ingredient: Ingredient, store: StoreConfig, html_content: List[dict]) -> List[Product]:
+    async def search_best_match_products(self, ingredient: Ingredient, store: StoreConfig, html_content: list[dict]) -> list[Product]:
         """Search grocery products for an ingredient using AI."""
 
         logger.info(f"[{self.name}] Searching grocery products for {ingredient.name} in {store.name}")
@@ -237,7 +237,7 @@ class BaseAIProvider(ABC):
             return []
 
 
-    # async def match_products(self, ingredient: str, products: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    # async def match_products(self, ingredient: str, products: list[dict[str, Any]]) -> list[dict[str, Any]]:
     #     """Match and rank products for an ingredient using AI."""
 
     #     logger.info(f"[{self.name}] Matching products for ingredient")

@@ -14,9 +14,9 @@ def test_shoppinglistitem_fix():
         content = f.read()
     
     # Check if store_options field was added
-    if 'store_options: Optional[Dict[str, Product]]' in content:
+    if 'store_options: Optional[dict[str, Product]]' in content:
         print("✅ store_options field added to ShoppingListItem model")
-        print("   Type: Optional[Dict[str, Product]]")
+        print("   Type: Optional[dict[str, Product]]")
         print("   Description: Available products from different stores")
     else:
         print("❌ store_options field not found in ShoppingListItem model")

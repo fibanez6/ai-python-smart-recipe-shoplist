@@ -1,7 +1,7 @@
 """AI service for intelligent web crawling and grocery search optimization."""
 
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 from ..config.logging_config import get_logger
 from ..config.pydantic_config import AI_SERVICE_SETTINGS
@@ -93,12 +93,12 @@ class AIService:
                 "message": f"Failed in extracting recipe",
             }
 
-    async def search_grocery_products_intelligently(self, ingredient: Ingredient, stores: List[StoreConfig] = []) -> List[ShopphingCart]:
+    async def search_grocery_products_intelligently(self, ingredient: Ingredient, stores: list[StoreConfig] = []) -> list[ShopphingCart]:
         """Search grocery stores for deals on ingredients using AI."""
         logger.info(f"[{self.name}] Searching grocery products for ingredients using {self.provider_name} AI provider")
 
         # Fetch the products search results
-        carts: List[Product] = []
+        carts: list[Product] = []
         for store in stores:
             try:
                 logger.info(f"[{self.name}] Searching products in store {store.name} from ingredient {ingredient.name}")
@@ -110,14 +110,14 @@ class AIService:
                 logger.error(f"[{self.name}] Error searching products in store {store.name}: {e}")
 
         # try:
-        #     carts: List[ShopphingCart] = await self.provider.search_best_match_products(ingredient, stores)
+        #     carts: list[ShopphingCart] = await self.provider.search_best_match_products(ingredient, stores)
         #     return carts
         # except Exception as e:
         #     print(f"[{self.name}] Error extracting products: {e}")
         #     return [ShopphingCart.default()]
     
     # async def optimize_product_matching(self, ingredient: Ingredient, 
-    #                                   store_results: Dict[str, List[Product]]) -> Dict[str, List[Product]]:
+    #                                   store_results: dict[str, list[Product]]) -> dict[str, list[Product]]:
     #     """Use AI to optimize product matching and ranking."""
     #     print(f"[{self.name}] Optimizing product matching for '{ingredient.name}'")
         
@@ -202,7 +202,7 @@ class AIService:
     #         logger.debug(f"[{self.name}] Raw response that failed to parse: {response[:200]}...")
     #         return []
 
-    async def shopping_assistant(self, url: str) -> List[Product]:
+    async def shopping_assistant(self, url: str) -> list[Product]:
         """Generate a structured shopping list using AI."""
 
         logger.info(f"[{self.name}] Generating shopping list for recipe URL: {url}")

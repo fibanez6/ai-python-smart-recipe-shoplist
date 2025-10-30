@@ -5,8 +5,7 @@ AI utility functions for response processing and data handling.
 import json
 import logging
 import re
-from email import message
-from typing import Any, Dict, List, Union
+from typing import Any, Union
 
 from ..config.pydantic_config import LOG_SETTINGS
 from ..services.tokenizer_service import TokenizerService  # Import TokenizerService
@@ -98,7 +97,7 @@ def safe_json_parse(response: str, fallback: Any = None) -> Any:
         return fallback
 
 
-def extract_json_from_text(text: str) -> Union[Dict, List, None]:
+def extract_json_from_text(text: str) -> Union[dict, list, None]:
     """
     Extract the first valid JSON object or array from text.
     
@@ -192,7 +191,7 @@ def log_ai_token_stats(provider_name: str, text: str, tokenizer: TokenizerServic
         }
         logger.log(level, f"[{provider_name}] Content stats: {stats}")
 
-def log_ai_chat_query(provider_name: str, chat_params: List[Dict[str, str]], logger: logging.Logger, level: int = logging.DEBUG) -> None:
+def log_ai_chat_query(provider_name: str, chat_params: list[dict[str, str]], logger: logging.Logger, level: int = logging.DEBUG) -> None:
     """
     Log AI chat parameters statistics.
     
