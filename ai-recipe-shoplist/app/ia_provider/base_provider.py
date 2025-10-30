@@ -10,7 +10,6 @@ from ..models import Ingredient, Product, Recipe, ShopphingCart
 from ..utils.ai_helpers import (
     log_ai_chat_query,
     log_ai_chat_response,
-    log_ai_token_stats,
     safe_json_parse,
 )
 
@@ -73,13 +72,7 @@ class BaseAIProvider(ABC):
     def truncate_to_max_tokens(self, text: str) -> str:
         """Truncate text to fit within the provider's max token limit."""
 
-        log_ai_token_stats(self.name, text, self.tokenizer, logger)
-
-        truncated = self.tokenizer.truncate_to_token_limit(text, self.max_tokens)
-
-        log_ai_token_stats(self.name, truncated, self.tokenizer, logger)
-
-        return truncated
+        return self.tokenizer.truncate_to_token_limit(text, self.max_tokens)
 
     async def complete_chat(self, params: any, **kwargs) -> ChatMessageResult:
         """Complete a chat conversation."""
@@ -144,9 +137,6 @@ class BaseAIProvider(ABC):
 
         logger.info(f"[{self.name}] Extracting recipe data from URL: {url}")
 
-        # Truncate HTML if too long
-        html_content = self.truncate_to_max_tokens(html_content)
-
         # Set system message
         system = """
         You are an AI assistant specialized in extracting structured recipe data from web pages.
@@ -166,6 +156,9 @@ class BaseAIProvider(ABC):
         {html_content}
         """
 
+        # Truncate prompt if too long
+        prompt = self.truncate_to_max_tokens(prompt)
+
         chat_params = {
             "messages": [
                 {"role": "system", "content": system},
@@ -183,13 +176,10 @@ class BaseAIProvider(ABC):
             # Return minimal structure if parsing fails
             return Recipe.default()
 
-    async def search_best_match_products(self, ingredient: Ingredient, store: StoreConfig, html_content: list[dict]) -> list[Product]:
+    async def search_best_match_products(self, ingredient: Ingredient, store: StoreConfig, fetch_content: list[dict]) -> list[Product]:
         """Search grocery products for an ingredient using AI."""
 
         logger.info(f"[{self.name}] Searching grocery products for {ingredient.name} in {store.name}")
-
-        # Truncate HTML if too long
-        html_content = self.truncate_to_max_tokens(html_content)
 
         # Set system message
         system = f"""
@@ -210,14 +200,17 @@ class BaseAIProvider(ABC):
         Extract grocery product information from the grocery website for a list of ingredients.
 
         Store to search:
-        {store.name} {store.get_search_url(ingredient.name)}
+        {store.name} {store.get_product_url(ingredient.name)}
 
         Ingredients:
         {ingredient}
 
-        HTML content:
-        {html_content}
+        Products content:
+        {fetch_content}
         """
+
+        # Truncate prompt if too long
+        prompt = self.truncate_to_max_tokens(prompt)
 
         chat_params = {
             "messages": [

@@ -61,11 +61,11 @@ class Ingredient(BaseModel):
     brand_preference: Optional[str] = Field(None, description="Preferred brand for the ingredient")
 
     def __str__(self) -> str:
-        name_str = f"Name: {self.name} "
-        qty_str = f"Quantity: {self.quantity} " if self.quantity is not None else ""
-        unit_str = f"Unit: {self.unit.value} " if self.unit is not None else ""
-        brand_str = f"(Preference brand: {self.brand_preference}) " if self.brand_preference else ""
-        return f"{qty_str}{unit_str}{name_str}{brand_str}"
+        name_str = f"{self.name}"
+        qty_str = f": {self.quantity} " if self.quantity is not None else "1 "
+        unit_str = f"{self.unit.value} " if self.unit is not None else "unit "
+        brand_str = f" (Preference brand: {self.brand_preference}) " if self.brand_preference else ""
+        return f"{name_str}{qty_str}{unit_str}{brand_str}"
 
 class Recipe(BaseModel):
     """Represents a parsed recipe."""

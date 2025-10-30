@@ -1,6 +1,9 @@
+import logging
 from typing import Optional
 
 import tiktoken
+
+from app.utils.str_helpers import count_chars, count_lines, count_words
 
 from ..config.logging_config import get_logger
 from ..config.pydantic_config import TIKTOKEN_SETTINGS
@@ -43,14 +46,36 @@ class TokenizerService:
 
         logger.debug(f"[{self.name}] Counting tokens: {num_tokens} (limit: {max_tokens})")
 
+        self.log_ai_token_stats(text, num_tokens, max_tokens)
+
         if num_tokens <= max_tokens:
             return text
         
         logger.warning(f"[{self.name}] Text exceeds max token limit ({num_tokens} > {max_tokens}), truncating...")
         truncated_tokens = tokens[:max_tokens]
 
-        logger.info(f"[{self.name}] Text truncated from {num_tokens} to {max_tokens} tokens")
-        return self.tokenizer.decode(truncated_tokens)  
-    
+        self.log_ai_token_stats(text, max_tokens)
+
+        return self.tokenizer.decode(truncated_tokens)
+
+    def log_ai_token_stats(self, text: str, num_tokens: int, max_tokens: int) -> None:
+        """
+        Log statistics about the given text, including character, word, line, and token counts.
+
+        Args:
+            text: The input text to analyze.
+            num_tokens: Number of tokens in the text.
+            max_tokens: Maximum allowed tokens.
+        """
+        if logger.isEnabledFor(logging.DEBUG):
+            stats = {
+                "chars": count_chars(text),
+                "words": count_words(text),
+                "lines": count_lines(text),
+                "tokens": num_tokens,
+                "max_tokens": max_tokens
+            }
+            logger.debug((f"[{self.name}] Content stats:", stats))
+
     def __repr__(self) -> str:
         return f"<TokenizerService(model={self.model}, encoder={TIKTOKEN_SETTINGS.encoder})>"

@@ -1,0 +1,86 @@
+[
+    {
+        "product_title": "Cherry Tomatoes in Tomato Juice 400g",
+        "product_price": "($3.48 per 1 kg)$1.39",
+        "product_image": "",
+        "product_brand": "CASA BARELLI",
+        "product_size": "0.4 kg"
+    },
+    {
+        "product_title": "Tomatoes 800g",
+        "product_price": "($5.98 per 1 kg)$4.78",
+        "product_image": "",
+        "product_brand": "",
+        "product_size": "0.8 kg"
+    },
+    {
+        "product_title": "Tomato Sauce 2L",
+        "product_price": "($0.25 per 100 ml)$4.99",
+        "product_image": "",
+        "product_brand": "COLWAY",
+        "product_size": "2,000 ml"
+    },
+    {
+        "product_title": "Gourmet Tomatoes 500g",
+        "product_price": "($7.98 per 1 kg)$3.99",
+        "product_image": "",
+        "product_brand": "",
+        "product_size": "0.5 kg"
+    },
+    {
+        "product_title": "Gourmet Tomatoes Loose",
+        "product_price": "($5.99 per 1 kg)$0.84/0.14 kg",
+        "product_image": "",
+        "product_brand": "",
+        "product_size": "approx. 0.14 kg per piece"
+    },
+    {
+        "product_title": "Bellino Tomatoes 200g",
+        "product_price": "($19.95 per 1 kg)$3.99",
+        "product_image": "",
+        "product_brand": "",
+        "product_size": "0.2 kg"
+    },
+    {
+        "product_title": "Cherry Tomatoes 250g",
+        "product_price": "($9.96 per 1 kg)$2.49",
+        "product_image": "",
+        "product_brand": "",
+        "product_size": "0.25 kg"
+    },
+    {
+        "product_title": "Roma Tomatoes 480g",
+        "product_price": "($9.35 per 1 kg)$4.49",
+        "product_image": "",
+        "product_brand": "",
+        "product_size": "0.48 kg"
+    },
+    {
+        "product_title": "Truss Tomatoes 500g",
+        "product_price": "($7.98 per 1 kg)$3.99",
+        "product_image": "",
+        "product_brand": "",
+        "product_size": "0.5 kg"
+    },
+    {
+        "product_title": "Truss Tomatoes Loose",
+        "product_price": "($2.99 per 1 kg)$0.42/0.14 kg",
+        "product_image": "",
+        "product_brand": "",
+        "product_size": "approx. 0.14 kg per piece"
+    },
+    {
+        "product_title": "Tomato Paste 500g",
+        "product_price": "($0.28 per 100 g)$1.39",
+        "product_image": "",
+        "product_brand": "REMANO",
+        "product_size": "500 g"
+    },
+    {
+        "product_title": "Tomato Juice 2L",
+        "product_price": "($1.30 per 1 L)$2.59",
+        "product_image": "",
+        "product_brand": "WESTCLIFF",
+        "product_size": "2 L"
+    }
+]

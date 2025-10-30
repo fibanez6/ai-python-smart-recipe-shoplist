@@ -101,11 +101,15 @@ class AIService:
         carts: list[Product] = []
         for store in stores:
             try:
+                # Fetch search page content
                 logger.info(f"[{self.name}] Searching products in store {store.name} from ingredient {ingredient.name}")
-                fetch_content = await self.web_fetcher.fetch_html_content(url=store.get_search_url(ingredient.name), html_selectors=store.html_selectors)
-                result = await self.provider.search_best_match_products(ingredient, fetch_content)
-                # if result:
-                    # carts.extend(result)
+                fetch_result = await self.web_fetcher.fetch_html_content(url=store.get_search_url(ingredient.name), html_selectors=store.html_selectors)
+                fetch_content = fetch_result.get("cleaned_content", fetch_result["content"])
+
+                # Search for best match products using AI provider
+                result = await self.provider.search_best_match_products(ingredient, store, fetch_content)
+                if result:
+                    carts.extend(result)
             except Exception as e:
                 logger.error(f"[{self.name}] Error searching products in store {store.name}: {e}")
 

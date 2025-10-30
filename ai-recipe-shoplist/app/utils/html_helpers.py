@@ -90,6 +90,72 @@ def clean_html_with_selectors(html_content: str, selectors: dict[str, str]) -> l
         "html_selectors": selectors
         })
         
+    product_tile_selector = _get_product_tile_selector(selectors)
+    if product_tile_selector:
+        filtered_selectors = {k: v for k, v in selectors.items() if k != "product_tile"}
+        return _extract_by_product_tile_selector(html_content, product_tile_selector, filtered_selectors)
+    return _extract_by_selectors(html_content, selectors)
+    
+
+def _get_product_tile_selector(selectors: dict[str, str]) -> str | None:
+    """Get the selector for a specific product tile."""
+    return selectors.get("product_tile", None)
+
+
+def _extract_by_product_tile_selector(html_content: str, product_title: str, selectors: dict[str, str]) -> list[dict]:
+    """Get the selector for a specific product tile."""
+    
+    logger = get_logger(__name__)
+
+    log_function_call("Html_helper._extract_by_product_tile_selector", {
+        "html_content": html_content[:50],
+        "product_title": product_title,
+        "html_selectors": selectors
+        })
+
+    try:
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        # Extract parts based on selectors
+        data = []
+
+        title_elements = soup.select(product_title)
+        logger.debug(f"[WebFetcher] Product Tile: Found {len(title_elements)} elements")
+
+        for tile in title_elements:
+            tile_data = {}
+            for name, selector in selectors.items():
+                element = tile.select_one(selector)
+                if element:
+                    if element.name == "img":
+                        tile_data[name] = element.get("src", "")
+                    elif element.name == "a":
+                        tile_data[name] = element.get("href", "")
+                    else:
+                        tile_data[name] = element.get_text(strip=True)
+            data.append(tile_data)
+
+        if logger.isEnabledFor(logging.DEBUG):
+            for idx, item in enumerate(data):
+                logger.debug(f"([WebFetcher] Element {idx}: {item}")
+
+        return data
+
+    except Exception as e:
+        logger.warning(f"[WebFetcher] Error cleaning HTML with selectors: {e}, returning original content")
+        return html_content
+
+
+def _extract_by_selectors(html_content: str, selectors: dict[str, str]) -> list[dict]:
+    """Extract product tiles from HTML content using the given selectors."""
+
+    logger = get_logger(__name__)
+
+    log_function_call("Html_helper._extract_by_product_tile_selector", {
+        "html_content": html_content[:50],
+        "html_selectors": selectors
+    })
+
     try:
         soup = BeautifulSoup(html_content, 'html.parser')
 
@@ -100,12 +166,19 @@ def clean_html_with_selectors(html_content: str, selectors: dict[str, str]) -> l
             logger.debug(f"[WebFetcher] Selector '{name}': Found {len(elements)} elements with selector '{selector}'")
             # for idx, element in enumerate(elements):
             #     logger.debug(f"[WebFetcher] Selector '{name}' Element {idx}: {str(element.text)[:400]}")
-            data[name] = [str(element.text) for element in elements]
+
+            for element in elements:
+                if element.name == "img":
+                    data.setdefault(name, []).append(element.get("src", ""))
+                elif element.name == "a":
+                    data.setdefault(name, []).append(element.get("href", ""))
+                else:
+                    data.setdefault(name, []).append(element.get_text(strip=True))
 
         # Zip all lists together by index, combining elements from each selector
         zipped = [dict(zip(data.keys(), values)) for values in zip(*data.values())]
  
-        # Add a new line to the zipped elements
+        
         if logger.isEnabledFor(logging.DEBUG):
             for idx, item in enumerate(zipped):
                 logger.debug(f"([WebFetcher] Element {idx}: {item}")
@@ -114,7 +187,7 @@ def clean_html_with_selectors(html_content: str, selectors: dict[str, str]) -> l
     except Exception as e:
         logger.warning(f"[WebFetcher] Error cleaning HTML with selectors: {e}, returning original content")
         return html_content
-    
+
 
 def clean_html_for_ai(html_content: str, selectors: dict[str, str]) -> str | list[dict]:
     """Wrapper to clean HTML content for AI processing."""

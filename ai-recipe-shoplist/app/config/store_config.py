@@ -119,7 +119,7 @@ STORE_CONFIGS: dict[str, StoreConfig] = {
         base_url="https://www.aldi.com.au",
         search_url="https://www.aldi.com.au/results",
         search_api_template="https://api.aldi.com.au/v3/product-search?currency=AUD&q={product_id}",
-        product_url_template="https://www.aldi.com.au/product/{product_id}",
+        product_url_template="https://www.aldi.com.au/{product_id}",
         search_param="q",
         search_limit_param="limit",
         rate_limit_delay=2.0,  # More conservative for ALDI
@@ -128,12 +128,13 @@ STORE_CONFIGS: dict[str, StoreConfig] = {
         results_per_page=12,
         max_pages=1,
         html_selectors={
-            # "product_tile": ".product-tile",
-            "product_title": ".product-tile__name",
-            "product_price": ".product-tile__price",
-            "product_image": ".product-tile__picture",
-            "product_brand": ".product-tile__brandname",
-            "product_size": ".product-tile__unit-of-measurement"
+            "product_tile": ".product-tile",
+            "product_name": '.product-tile__name',
+            "product_price": '.product-tile__price',
+            "product_price_unit": '.product-tile__price--unit p',
+            "product_image": '.product-tile__picture img',
+            "product_brand": '.product-tile__brandname',
+            "product_url": '.product-tile a'
         }
     ),
     

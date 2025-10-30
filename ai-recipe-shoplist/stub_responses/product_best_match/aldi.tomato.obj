@@ -1,0 +1,12 @@
+Product (
+    title='Gourmet Tomatoes Loose', 
+    ingredient='tomato', 
+    price=3.36, 
+    store='ALDI', 
+    url='https://www.aldi.com.au/product/tomato', 
+    image_url=None, 
+    brand=None, 
+    size='0.56 kg', 
+    unit_price=5.99, 
+    availability=True
+)

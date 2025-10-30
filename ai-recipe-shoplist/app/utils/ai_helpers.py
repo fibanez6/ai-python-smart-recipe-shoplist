@@ -172,24 +172,6 @@ def format_ai_prompt(template: str, **kwargs) -> str:
     except KeyError as e:
         raise ValueError(f"Missing required template parameter: {e}")
 
-def log_ai_token_stats(provider_name: str, text: str, tokenizer: TokenizerService, logger: logging.Logger, level: int = logging.DEBUG) -> None:
-    """
-    Log AI token usage statistics.
-    
-    Args:
-        provider_name: Name of the AI provider
-        token_stats: Dictionary with token statistics
-        logger: Logger instance
-        level: Logging level (e.g., logging.INFO)
-    """
-    if logger.isEnabledFor(level):
-        stats = {
-            "chars": count_chars(text),
-            "words": count_words(text),
-            "lines": count_lines(text),
-            "tokens": tokenizer.count_tokens(text)
-        }
-        logger.log(level, f"[{provider_name}] Content stats: {stats}")
 
 def log_ai_chat_query(provider_name: str, chat_params: list[dict[str, str]], logger: logging.Logger, level: int = logging.DEBUG) -> None:
     """
