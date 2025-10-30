@@ -84,13 +84,9 @@ class Recipe(BaseModel):
         """Returns a default example recipe."""
         return Recipe(
             title="Recipe Title",
-            description="",
-            servings=None,
-            prep_time=None,
-            cook_time=None,
+            url="http://example.com/recipe",
             ingredients=[],
-            instructions=[],
-            image_url=None
+            instructions=[]
         )
 
 class Product(BaseModel):
@@ -103,7 +99,7 @@ class Product(BaseModel):
     brand: Optional[str] = Field(None, description="Product brand")
     size: Optional[str] = Field(None, description="Product size/weight")
     unit_price: Optional[float] = Field(None, description="Price per unit")
-    availability: bool = Field(True, description="Product availability")
+    availability: Optional[bool] = Field(True, description="Product availability")
 
     @staticmethod
     def default() -> "Product":
@@ -111,13 +107,7 @@ class Product(BaseModel):
         return Product(
             title="Example Product",
             price=0.0,
-            store="Example Store",
-            url=None,
-            image_url=None,
-            brand=None,
-            size=None,
-            unit_price=None,
-            availability=True
+            store="Example Store"
         )
 
 class ShopphingCart(BaseModel):

@@ -108,16 +108,16 @@ class GitHubSettings(BaseSettings):
 
 class LoggingSettings(BaseSettings):
     """Logging configuration settings."""
-    
     level: str = Field(default="INFO", description="Log level")
-    to_file: bool = Field(default=True, description="Enable file logging")
+    debug_enabled: bool = Field(default=False, description="Enable debug mode")
+    file_enabled: bool = Field(default=True, description="Enable file logging")
     file_path: str = Field(default="logs/app.log", description="Log file path")
     max_size: int = Field(default=10485760, description="Maximum log file size (10MB)")
     backup_count: int = Field(default=5, description="Number of backup files to keep")
-    log_debug_enabled: bool = Field(default=False, description="Enable debug mode")
     max_length: int = Field(default=500, description="Maximum length in characters (0 = no limit)")
-    chat_message_max_length: int = Field(default=max_length, description="Maximum length of chat messages to log (0 = no limit)")
+    chat_message_max_length: int = Field(default=500, description="Maximum length of chat messages to log (0 = no limit)")
     chat_message_single_line: bool = Field(default=False, description="Log chat messages in a single line")
+    format_string: str | None = Field(default=None, description="Log format string")
     
     model_config = ConfigDict(env_prefix="LOG_")
 
@@ -264,79 +264,28 @@ class AppSettings(BaseSettings):
 # Global settings instance
 settings = AppSettings()
 
+SERVER_SETTINGS = settings.server
+
 FETCHER_SETTINGS = settings.web_fetcher
 STORAGE_SETTINGS = settings.storage
 CACHE_SETTINGS = settings.cache
 
-TIKTOKEN_SETTINGS = settings.tiktoken
+LOG_SETTINGS = settings.logging
 
 # AI provider settings
-AI_PROVIDER = settings.ai_provider.provider
-AI_PROVIDER_CHAT_ENABLED = settings.ai_provider.provider_chat_enabled
+AI_SERVICE_SETTINGS = settings.ai_provider
+
+TIKTOKEN_SETTINGS = settings.tiktoken
 
 GITHUB_SETTINGS = settings.github
-
-OPENAI_API_KEY = settings.openai.api_key
-OPENAI_MODEL = settings.openai.model
-OPENAI_MAX_TOKENS = settings.openai.max_tokens
-OPENAI_TEMPERATURE = settings.openai.temperature
-OPENAI_TIMEOUT = settings.openai.timeout
-
-AZURE_OPENAI_API_KEY = settings.azure.api_key
-AZURE_OPENAI_ENDPOINT = settings.azure.endpoint
-AZURE_OPENAI_API_VERSION = settings.azure.api_version
-AZURE_OPENAI_DEPLOYMENT_NAME = settings.azure.deployment_name
-AZURE_OPENAI_MAX_TOKENS = settings.azure.max_tokens
-AZURE_OPENAI_TEMPERATURE = settings.azure.temperature
-AZURE_OPENAI_TIMEOUT = settings.azure.timeout
-
-OLLAMA_HOST = settings.ollama.host
-OLLAMA_MODEL = settings.ollama.model
-OLLAMA_MAX_TOKENS = settings.ollama.max_tokens
-OLLAMA_TEMPERATURE = settings.ollama.temperature
-OLLAMA_TIMEOUT = settings.ollama.timeout
-
-LOG_LEVEL = settings.logging.level
-LOG_DEBUG_ENABLED = settings.logging.log_debug_enabled
-LOG_TO_FILE = settings.logging.to_file
-LOG_FILE_PATH = settings.logging.file_path
-LOG_MAX_SIZE = settings.logging.max_size
-LOG_MAX_LENGTH = settings.logging.max_length
-LOG_BACKUP_COUNT = settings.logging.backup_count
-LOG_CHAT_MESSAGE_MAX_LENGTH = settings.logging.chat_message_max_length
-LOG_CHAT_MESSAGE_SINGLE_LINE = settings.logging.chat_message_single_line
-
-SERVER_HOST = settings.server.host
-SERVER_PORT = settings.server.port
-
-RETRY_MAX_ATTEMPTS = settings.retry.max_attempts
-RETRY_BASE_DELAY = settings.retry.base_delay
-RETRY_MAX_DELAY = settings.retry.max_delay
-RETRY_MULTIPLIER = settings.retry.multiplier
-RETRY_RPM_LIMIT = settings.retry.rpm_limit
+AZURE_SETTINGS = settings.azure
+OLLAMA_SETTINGS = settings.ollama
+OPENAI_SETTINGS = settings.openai
 
 USE_MOCK_AI_RESPONSES = settings.mock.use_mock_ai_responses
 
-# Retry configuration for each provider
-OPENAI_MAX_RETRIES = settings.openai.max_retries
-OPENAI_BASE_DELAY = settings.openai.base_delay
-OPENAI_MAX_DELAY = settings.openai.max_delay
-OPENAI_RPM_LIMIT = settings.openai.rpm_limit
-
-AZURE_MAX_RETRIES = settings.azure.max_retries
-AZURE_BASE_DELAY = settings.azure.base_delay
-AZURE_MAX_DELAY = settings.azure.max_delay
-AZURE_RPM_LIMIT = settings.azure.rpm_limit
-
-OLLAMA_MAX_RETRIES = settings.ollama.max_retries
-OLLAMA_BASE_DELAY = settings.ollama.base_delay
-OLLAMA_MAX_DELAY = settings.ollama.max_delay
-OLLAMA_RPM_LIMIT = settings.ollama.rpm_limit
-
-GITHUB_MAX_RETRIES = settings.github.max_retries
-GITHUB_BASE_DELAY = settings.github.base_delay
-GITHUB_MAX_DELAY = settings.github.max_delay
-GITHUB_RPM_LIMIT = settings.github.rpm_limit
+# Retry settings
+RETRY_SETTINGS = settings.retry
 
 # Utility functions for backward compatibility
 def get_config_summary() -> dict:

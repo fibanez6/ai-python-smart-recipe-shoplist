@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from ..config.logging_config import get_logger
-from ..config.pydantic_config import AI_PROVIDER
+from ..config.pydantic_config import AI_SERVICE_SETTINGS
 from ..config.store_config import StoreConfig
 from ..ia_provider import (
     AzureProvider,
@@ -40,7 +40,7 @@ class AIService:
     """Main AI service that manages different providers."""
     
     def __init__(self, provider: Optional[str] = None):
-        self.provider_name = provider or AI_PROVIDER
+        self.provider_name = provider or AI_SERVICE_SETTINGS.provider
         self.provider = self._create_provider(self.provider_name)
     
     def _create_provider(self, provider_name: str) -> BaseAIProvider:

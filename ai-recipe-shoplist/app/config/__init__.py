@@ -1,7 +1,6 @@
 """Configuration modules for the AI Recipe Shoplist Crawler."""
 
 from .logging_config import (
-    LOG_DEBUG_ENABLED,
     LOG_LEVEL,
     get_logger,
     log_api_request,
@@ -47,6 +46,5 @@ __all__ = [
     "set_debug_mode",
     "log_function_call",
     "log_api_request",
-    "LOG_DEBUG_ENABLED",
     "LOG_LEVEL"
 ]

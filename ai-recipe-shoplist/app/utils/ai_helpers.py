@@ -2,19 +2,15 @@
 AI utility functions for response processing and data handling.
 """
 
-from email import message
 import json
 import logging
 import re
+from email import message
 from typing import Any, Dict, List, Union
 
-from ..config.pydantic_config import LOG_CHAT_MESSAGE_MAX_LENGTH, LOG_CHAT_MESSAGE_SINGLE_LINE, LOG_MAX_LENGTH
-from ..utils.str_helpers import (
-    count_chars,
-    count_words,
-    count_lines,
-)
+from ..config.pydantic_config import LOG_SETTINGS
 from ..services.tokenizer_service import TokenizerService  # Import TokenizerService
+from ..utils.str_helpers import count_chars, count_lines, count_words
 
 # Get module logger
 logger = logging.getLogger(__name__)
@@ -214,12 +210,13 @@ def log_ai_chat_query(provider_name: str, chat_params: List[Dict[str, str]], log
 
         # Log each message
         for i, msg in enumerate(chat_params.get('messages', [])):
-            if LOG_CHAT_MESSAGE_MAX_LENGTH == 0:
+            max_length = LOG_SETTINGS.chat_message_max_length
+            if max_length == 0:
                 content = msg.get('content', '')
             else:
-                content = msg.get('content', '')[:LOG_CHAT_MESSAGE_MAX_LENGTH] + '...' if len(msg.get('content', '')) > LOG_CHAT_MESSAGE_MAX_LENGTH else msg.get('content', '')
-            
-            if LOG_CHAT_MESSAGE_SINGLE_LINE:
+                content = msg.get('content', '')[:max_length] + '...' if len(msg.get('content', '')) > max_length else msg.get('content', '')
+
+            if LOG_SETTINGS.chat_message_single_line:
                 content = content.replace(chr(10), ' ')  # replace newlines with spaces for single line logging
 
             logger.debug(f"[{provider_name}] Message {i+1} ({msg.get('role', 'unknown')}): \"\"\"\n{content}\n\"\"\"")

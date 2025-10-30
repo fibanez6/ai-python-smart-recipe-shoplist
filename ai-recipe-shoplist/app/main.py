@@ -17,18 +17,16 @@ load_dotenv()
 # Setup logging first
 from .config.logging_config import setup_logging
 from .config.pydantic_config import (
-    AI_PROVIDER,
-    LOG_FILE_PATH,
-    LOG_TO_FILE,
-    SERVER_HOST,
-    SERVER_PORT,
+    AI_SERVICE_SETTINGS,
+    LOG_SETTINGS,
+    SERVER_SETTINGS,
     get_config_summary,
 )
 
 # Initialize logging with file support if needed
 logger = setup_logging(
-    enable_file_logging=LOG_TO_FILE,
-    log_file=LOG_FILE_PATH
+    file_logging_enabled=LOG_SETTINGS.file_enabled,
+    log_file=LOG_SETTINGS.file_path
 )
 
 from contextlib import asynccontextmanager
@@ -114,7 +112,7 @@ async def health_check():
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
         "version": "0.1.0",
-        "ai_provider": AI_PROVIDER
+        "ai_provider": AI_SERVICE_SETTINGS.provider
     }
 
 
@@ -548,9 +546,9 @@ async def demo_recipe():
     )
 
 if __name__ == "__main__":
-    port = SERVER_PORT
-    host = SERVER_HOST
-    
+    port = SERVER_SETTINGS.port
+    host = SERVER_SETTINGS.host
+
     print(f"Starting server on {host}:{port}")
     uvicorn.run(
         "app.main:app",

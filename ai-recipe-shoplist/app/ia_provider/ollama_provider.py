@@ -3,12 +3,7 @@
 from typing import Dict, List
 
 from ..config.logging_config import get_logger
-from ..config.pydantic_config import (
-    OLLAMA_HOST,
-    OLLAMA_MAX_TOKENS,
-    OLLAMA_MODEL,
-    OLLAMA_TEMPERATURE,
-)
+from ..config.pydantic_config import OLLAMA_SETTINGS
 from ..utils.retry_utils import (
     AIRetryConfig,
     NetworkError,
@@ -38,22 +33,20 @@ class OllamaProvider(BaseAIProvider):
         logger.debug(f"[{self.name}] Initializing Ollama Models provider...")
         
         try:
-            self._client = ollama.Client(host=self.base_url)
+            self._client = ollama.AsyncClient(host=OLLAMA_SETTINGS.host)
             self._client.list()
             self._retry_config = create_ai_retry_config(self.name, requests_per_minute=0)  # 0 = no rate limiting
 
-            logger.info(f"[{self.name}] Provider initialized - Model: {OLLAMA_MODEL}, Host: {OLLAMA_HOST}")
+            logger.info(f"[{self.name}] Provider initialized - Model: {OLLAMA_SETTINGS.model}, Host: {OLLAMA_SETTINGS.host}")
         except Exception as e:
-            raise ConnectionError(f"Cannot connect to Ollama at {OLLAMA_HOST}: {e}")
-    
+            raise ConnectionError(f"Cannot connect to Ollama at {OLLAMA_SETTINGS.host}: {e}")
+
     async def complete_chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
         """Complete a chat conversation using Ollama with tenacity retry logic."""
         
         @with_ai_retry(self.retry_config)
         async def make_ollama_request():
             try:
-                client = ollama.AsyncClient(host=OLLAMA_HOST)
-                
                 # Format prompt for Ollama
                 prompt = ""
                 for msg in messages:
@@ -63,12 +56,12 @@ class OllamaProvider(BaseAIProvider):
                         prompt += f"Human: {msg['content']}\n\n"
                 prompt += "Assistant: "
                 
-                response = await client.generate(
+                response = await self.client.generate(
                     model=self.model,
                     prompt=prompt,
                     options={
-                        "temperature": kwargs.get("temperature", OLLAMA_TEMPERATURE),
-                        "num_predict": kwargs.get("max_tokens", OLLAMA_MAX_TOKENS),
+                        "temperature": kwargs.get("temperature", self.temperature),
+                        "num_predict": kwargs.get("max_tokens", self.max_tokens),
                     }
                 )
                 return response['response']
@@ -92,15 +85,15 @@ class OllamaProvider(BaseAIProvider):
     
     @property
     def model(self) -> str:
-        return OLLAMA_MODEL
+        return OLLAMA_SETTINGS.model
 
     @property
     def max_tokens(self) -> int:
-        return OLLAMA_MAX_TOKENS
+        return OLLAMA_SETTINGS.max_tokens
 
     @property
     def temperature(self) -> float:
-        return OLLAMA_TEMPERATURE
+        return OLLAMA_SETTINGS.temperature
 
     @property
     def client(self) -> any:
@@ -111,4 +104,4 @@ class OllamaProvider(BaseAIProvider):
         return self._retry_config
     
     def __repr__(self) -> str:
-        return f"<OllamaProvider(model={OLLAMA_MODEL}, host={OLLAMA_HOST})>"
+        return f"<OllamaProvider(model={OLLAMA_SETTINGS.model}, host={OLLAMA_SETTINGS.host})>"

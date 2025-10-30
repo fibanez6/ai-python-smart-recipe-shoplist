@@ -3,14 +3,7 @@
 import azure.identity.aio
 
 from ..config.logging_config import get_logger
-from ..config.pydantic_config import (
-    AZURE_OPENAI_API_KEY,
-    AZURE_OPENAI_API_VERSION,
-    AZURE_OPENAI_DEPLOYMENT_NAME,
-    AZURE_OPENAI_ENDPOINT,
-    AZURE_OPENAI_MAX_TOKENS,
-    AZURE_OPENAI_TEMPERATURE,
-)
+from ..config.pydantic_config import AZURE_SETTINGS
 from ..utils.retry_utils import AIRetryConfig, create_ai_retry_config
 from .base_provider import BaseAIProvider
 
@@ -33,8 +26,8 @@ class AzureProvider(BaseAIProvider):
 
         if not openai:
             raise ImportError("OpenAI library not installed. Run: pip install openai")
-        
-        if not AZURE_OPENAI_API_KEY or not AZURE_OPENAI_ENDPOINT:
+
+        if not AZURE_SETTINGS.api_key or not AZURE_SETTINGS.endpoint:
             raise ValueError("AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT environment variables must be set")
 
         logger.debug(f"[{self.name}] Initializing Azure OpenAI provider...")
@@ -46,15 +39,16 @@ class AzureProvider(BaseAIProvider):
 
         # Initialize OpenAI Async Client for Azure
         self._client = openai.AsyncAzureOpenAI(
-            api_key=AZURE_OPENAI_API_KEY,
-            azure_endpoint=AZURE_OPENAI_ENDPOINT,
-            api_version=AZURE_OPENAI_API_VERSION
+            api_key=AZURE_SETTINGS.api_key,
+            azure_endpoint=AZURE_SETTINGS.endpoint,
+            api_version=AZURE_SETTINGS.api_version
         )
         self._retry_config = create_ai_retry_config(self.name)
 
         # Mask token for logging
-        self._masked_token = f"{AZURE_OPENAI_API_KEY[:8]}...{AZURE_OPENAI_API_KEY[-4:]}" if len(AZURE_OPENAI_API_KEY) > 12 else "***"
-        logger.info(f"[{self.name}] Provider initialized - Model: {AZURE_OPENAI_DEPLOYMENT_NAME}, API URL: {AZURE_OPENAI_ENDPOINT}, Token: {self._masked_token}")
+        apikey = AZURE_SETTINGS.api_key
+        self._masked_token = f"{apikey[:8]}...{apikey[-4:]}" if len(apikey) > 12 else "***"
+        logger.info(f"[{self.name}] Provider initialized - Model: {AZURE_SETTINGS.deployment_name}, API URL: {AZURE_SETTINGS.endpoint}, Token: {self._masked_token}")
 
     @property
     def name(self) -> str:
@@ -62,15 +56,15 @@ class AzureProvider(BaseAIProvider):
     
     @property
     def model(self) -> str:
-        return AZURE_OPENAI_DEPLOYMENT_NAME
-    
+        return AZURE_SETTINGS.deployment_name
+
     @property
     def max_tokens(self) -> int:
-        return AZURE_OPENAI_MAX_TOKENS
+        return AZURE_SETTINGS.max_tokens
 
     @property
     def temperature(self) -> float:
-        return AZURE_OPENAI_TEMPERATURE
+        return AZURE_SETTINGS.temperature
 
     @property
     def client(self) -> any:
@@ -81,4 +75,4 @@ class AzureProvider(BaseAIProvider):
         return self._retry_config
 
     def __repr__(self) -> str:
-        return f"<AzureProvider(model={AZURE_OPENAI_DEPLOYMENT_NAME}, base_url={AZURE_OPENAI_ENDPOINT}, token={self._masked_token})>"
+        return f"<AzureProvider(model={AZURE_SETTINGS.deployment_name}, base_url={AZURE_SETTINGS.endpoint}, token={self._masked_token})>"

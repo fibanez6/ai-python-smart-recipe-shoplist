@@ -24,9 +24,7 @@ from ..utils.ai_helpers import (
 # Get module logger
 logger = get_logger(__name__)
 
-from ..config.pydantic_config import (
-    AI_PROVIDER_CHAT_ENABLED,  # Import the new config variable
-)
+from ..config.pydantic_config import AI_SERVICE_SETTINGS
 from ..services.tokenizer_service import TokenizerService  # Import TokenizerService
 from ..utils.retry_utils import (
     AIRetryConfig,
@@ -134,7 +132,7 @@ class BaseAIProvider(ABC):
                 else:
                     raise  # Let tenacity decide if it's retryable
 
-        if not AI_PROVIDER_CHAT_ENABLED:
+        if not AI_SERVICE_SETTINGS.provider_chat_enabled:
             logger.info(f"[{self.name}] AI provider chat calls are disabled. Skipping API call.")
             return ChatMessageResult(
                 content="",

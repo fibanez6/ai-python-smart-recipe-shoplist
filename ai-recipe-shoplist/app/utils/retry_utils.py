@@ -23,13 +23,7 @@ except ImportError:
     raise ImportError("tenacity library not installed. Run: pip install tenacity")
 
 from ..config.logging_config import get_logger
-from ..config.pydantic_config import (
-    RETRY_BASE_DELAY,
-    RETRY_MAX_ATTEMPTS,
-    RETRY_MAX_DELAY,
-    RETRY_MULTIPLIER,
-    RETRY_RPM_LIMIT
-)
+from ..config.pydantic_config import RETRY_SETTINGS
 
 logger = get_logger(__name__)
 
@@ -197,12 +191,12 @@ class AIRetryConfig:
         multiplier: Optional[float] = None
     ):
         self.provider_name = provider_name
-        
-        self.max_retries = max_retries or int(os.getenv(f"{provider_name}_MAX_RETRIES") or RETRY_MAX_ATTEMPTS)
-        self.base_delay = base_delay or float(os.getenv(f"{provider_name}_BASE_DELAY") or RETRY_BASE_DELAY)
-        self.max_delay = max_delay or float(os.getenv(f"{provider_name}_MAX_DELAY") or RETRY_MAX_DELAY)
-        self.multiplier = multiplier or float(os.getenv(f"{provider_name}_RETRY_MULTIPLIER") or RETRY_MULTIPLIER)
-        rpm = requests_per_minute or int(os.getenv(f"{provider_name}_RPM_LIMIT") or RETRY_RPM_LIMIT)
+
+        self.max_retries = max_retries or int(os.getenv(f"{provider_name}_MAX_RETRIES") or RETRY_SETTINGS.max_attempts)
+        self.base_delay = base_delay or float(os.getenv(f"{provider_name}_BASE_DELAY") or RETRY_SETTINGS.base_delay)
+        self.max_delay = max_delay or float(os.getenv(f"{provider_name}_MAX_DELAY") or RETRY_SETTINGS.max_delay)
+        self.multiplier = multiplier or float(os.getenv(f"{provider_name}_RETRY_MULTIPLIER") or RETRY_SETTINGS.multiplier)
+        rpm = requests_per_minute or int(os.getenv(f"{provider_name}_RPM_LIMIT") or RETRY_SETTINGS.rpm_limit)
 
         self.rate_limiter = RateLimiter(rpm) if rpm > 0 else None
         

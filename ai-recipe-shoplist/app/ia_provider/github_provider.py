@@ -29,18 +29,13 @@ class GitHubProvider(BaseAIProvider):
 
         logger.debug(f"[{self.name}] Initializing GitHub Models provider...")
 
-        self.model = GITHUB_SETTINGS.model
-        self.api_url = GITHUB_SETTINGS.api_url
-        self.max_tokens = GITHUB_SETTINGS.max_tokens
-        self.temperature = GITHUB_SETTINGS.temperature
-
         # Initialize OpenAI Async Client for GitHub Models
-        self._client = openai.AsyncOpenAI(base_url=self.api_url, api_key=GITHUB_SETTINGS.token)
+        self._client = openai.AsyncOpenAI(base_url=GITHUB_SETTINGS.api_url, api_key=GITHUB_SETTINGS.token)
         self._retry_config = create_ai_retry_config(self.name)
 
         # Mask token for logging
         self._masked_token = f"{GITHUB_SETTINGS.token[:8]}...{GITHUB_SETTINGS.token[-4:]}" if len(GITHUB_SETTINGS.token) > 12 else "***"
-        logger.info(f"[{self.name}] Provider initialized - Model: {self.model}, API URL: {self.api_url}, Token: {self._masked_token}")
+        logger.info(f"[{self.name}] Provider initialized - Model: {GITHUB_SETTINGS.model}, API URL: {GITHUB_SETTINGS.api_url}, Token: {self._masked_token}")
 
     @property
     def name(self) -> str:
@@ -48,15 +43,15 @@ class GitHubProvider(BaseAIProvider):
     
     @property
     def model(self) -> str:
-        return self.model
+        return GITHUB_SETTINGS.model
     
     @property
     def max_tokens(self) -> int:
-        return self.max_tokens
+        return GITHUB_SETTINGS.max_tokens
 
     @property
     def temperature(self) -> float:
-        return self.temperature
+        return GITHUB_SETTINGS.temperature
 
     @property
     def client(self) -> any:
@@ -67,4 +62,4 @@ class GitHubProvider(BaseAIProvider):
         return self._retry_config
     
     def __repr__(self) -> str:
-        return f"<GitHubProvider(model={self.model}, base_url={self.api_url}, token={self._masked_token})>"
+        return f"<GitHubProvider(model={GITHUB_SETTINGS.model}, base_url={GITHUB_SETTINGS.api_url}, token={self._masked_token})>"

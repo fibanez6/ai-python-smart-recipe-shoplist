@@ -35,7 +35,7 @@ def setup_logging(
     level: Optional[str] = None,
     debug: Optional[bool] = None,
     format_string: Optional[str] = None,
-    enable_file_logging: bool = False,
+    file_logging_enabled: bool = False,
     log_file: str = "app.log"
 ) -> logging.Logger:
     """
@@ -45,26 +45,26 @@ def setup_logging(
         level: Log level override (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         debug: Debug mode override (True/False)
         format_string: Custom log format string
-        enable_file_logging: Whether to enable file logging
-        log_file: Log file path (only used if enable_file_logging=True)
+        file_logging_enabled: Whether to enable file logging
+        log_file: Log file path (only used if file_logging_enabled=True)
     
     Returns:
         Configured logger instance
     """
     
     # Get configuration from environment or parameters
-    LOG_DEBUG_ENABLED = debug if debug is not None else os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
+    debug_enabled = debug if debug is not None else os.getenv("LOG_DEBUG_ENABLED", "false").lower() in ("true", "1", "yes")
     log_level = level or os.getenv("LOG_LEVEL", "info").upper()
     
     # Default format string
     if format_string is None:
-        format_string = "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
+        format_string = "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s:%(lineno)d - %(message)s"
     
     # Convert string level to logging constant
     numeric_level = getattr(logging, log_level, logging.INFO)
     
     # Override to DEBUG if debug is enabled
-    if LOG_DEBUG_ENABLED:
+    if debug_enabled:
         numeric_level = logging.DEBUG
     
     # Clear any existing handlers to avoid duplicates
@@ -93,7 +93,7 @@ def setup_logging(
     # root_logger.setLevel(numeric_level)
     
     # File handler (optional)
-    if enable_file_logging:
+    if file_logging_enabled:
         # Ensure log directory exists
         log_dir = os.path.dirname(log_file)
         if log_dir and not os.path.exists(log_dir):
@@ -113,17 +113,17 @@ def setup_logging(
     app_logger.setLevel(numeric_level)
     
     # Log configuration info
-    app_logger.info(f"Logging configured - Level: {logging.getLevelName(numeric_level)}, Debug: {LOG_DEBUG_ENABLED}")
+    app_logger.info(f"Logging configured - Level: {logging.getLevelName(numeric_level)}, Debug: {debug_enabled}")
     
-    if enable_file_logging:
+    if file_logging_enabled:
        app_logger.info(
         {
             "event": "logging_configured",
             "level": logging.getLevelName(numeric_level),
             "handlers": [type(h).__name__ for h in root_logger.handlers],
             "debug": LOG_DEBUG_ENABLED,
-            "file_logging": enable_file_logging,
-            "log_file": log_file if enable_file_logging else None,
+            "file_logging": file_logging_enabled,
+            "log_file": log_file if file_logging_enabled else None,
         }
     )
     
@@ -260,6 +260,6 @@ if not logging.getLogger().handlers:
     setup_logging(
         level=LOG_LEVEL,
         debug=LOG_DEBUG_ENABLED,
-        enable_file_logging=LOG_FILE_ENABLED,
+        file_logging_enabled=LOG_FILE_ENABLED,
         log_file=LOG_FILE_PATH
     )
