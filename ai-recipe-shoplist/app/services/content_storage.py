@@ -18,7 +18,7 @@ LOADED_ORIGINAL_CONTENT = "loaded_content_from_disk"
 LOADED_CLEANED_CONTENT = "loaded_cleaned_content_from_disk"
 URL_MAPPING = "url_mapping"
 
-class WebContentStorage:
+class ContentStorage:
     """Manages saving and loading of web content to/from disk files."""
 
     def __init__(self, tmp_folder: Path = STORAGE_SETTINGS.tmp_folder):
@@ -28,7 +28,7 @@ class WebContentStorage:
         Args:
             tmp_folder: Base temporary folder for storage
         """
-        self.name = "WebContentStorage"
+        self.name = "ContentStorage"
         self.tmp_folder = tmp_folder
         self.enable_saving = STORAGE_SETTINGS.enable_saving
         self.enable_loading = STORAGE_SETTINGS.enable_loading
@@ -66,7 +66,7 @@ class WebContentStorage:
             logger.debug(f"[{self.name}] Content saving disabled for {url}")
             return {}
         
-        log_function_call("WebContentStorage.save_fetch_content", {
+        log_function_call("ContentStorage.save_fetch_content", {
             "url": url,
             "fetch_content": str(fetch_content)[:20] + "...",
             "loaded_original_content": fetch_content.get(LOADED_ORIGINAL_CONTENT, False),
@@ -80,7 +80,7 @@ class WebContentStorage:
             if ORIGINAL_CONTENT not in fetch_content:
                 raise ValueError("Original content is missing")
 
-            # Save original content
+            # Save original content if it is not loaded from disk
             if not fetch_content.get(LOADED_ORIGINAL_CONTENT, False):
                 original_file = self.content_folder / f"{url_hash}_original.html"
                 with open(original_file, 'w', encoding='utf-8') as f:
@@ -90,7 +90,7 @@ class WebContentStorage:
             else:
                 logger.debug(f"[{self.name}] No original content to save for: {url}")
             
-            # Save cleaned content if provided
+            # Save cleaned content if provided and not loaded from disk
             cleaned_content_format = "html"
             if CLEANED_CONTENT in fetch_content and not fetch_content.get(LOADED_CLEANED_CONTENT, False):
                 cleaned_content = fetch_content[CLEANED_CONTENT]

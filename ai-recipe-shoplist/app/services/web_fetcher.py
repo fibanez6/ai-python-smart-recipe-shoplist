@@ -10,7 +10,7 @@ from ..config.logging_config import get_logger, log_api_request, log_function_ca
 from ..config.pydantic_config import FETCHER_SETTINGS
 from ..utils.html_helpers import clean_html_for_ai
 from .cache_manager import CacheManager
-from .content_storage import WebContentStorage
+from .content_storage import ContentStorage
 
 logger = get_logger(__name__)
 
@@ -32,7 +32,7 @@ class WebFetcher:
 
         # Initialize cache manager and content storage
         self.cache_manager = CacheManager(cache_ttl)
-        self.content_storage = WebContentStorage(self.tmp_folder)
+        self.content_storage = ContentStorage(self.tmp_folder)
         
         logger.info(f"[{self.name}] initialized - Timeout: {self.timeout}s, Max size: {self.max_content_size} bytes")
         logger.info(f"[{self.name}] tmp folder: {self.tmp_folder}")
@@ -120,7 +120,7 @@ class WebFetcher:
 
     async def fetch_html_content(self, url: str, html_selectors: Dict[str, str] = {}, clean_html: bool = True, use_cache: bool = True) -> Dict[str, Any]:
         """
-        Fetch HTML content from a URL, optionally cleaning it and applying HTML selectors.
+        Fetch HTML content from a URL, optionally clean it, and apply HTML selectors.
 
         Args:
             url (str): The URL to fetch HTML content from.

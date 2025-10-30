@@ -72,7 +72,7 @@ def clean_html(html_content: str) -> str:
         logger.warning(f"[WebFetcher] Error cleaning HTML: {e}, returning original content")
         return html_content
     
-def clean_html_with_selectors(html_content: str, selectors: Dict[str, str]) -> str:
+def clean_html_with_selectors(html_content: str, selectors: Dict[str, str]) -> list[dict]:
     """
     Clean HTML content for AI processing using specific CSS selectors.
     
@@ -115,7 +115,7 @@ def clean_html_with_selectors(html_content: str, selectors: Dict[str, str]) -> s
         return html_content
     
 
-def clean_html_for_ai(html_content: str, selectors: Dict[str, str]) -> str:
+def clean_html_for_ai(html_content: str, selectors: Dict[str, str]) -> str | list[dict]:
     """Wrapper to clean HTML content for AI processing."""
     if selectors:
         return clean_html_with_selectors(html_content, selectors)

@@ -70,10 +70,10 @@ class AIService:
         try:
             # Fetch recipe content using the web fetcher service
             fetch_result = await self.web_fetcher.fetch_html_content(url, clean_html=True)
-            html_content = fetch_result.get("cleaned_content", fetch_result["content"])
+            fetch_content = fetch_result.get("cleaned_content", fetch_result["content"])
 
             # Extract recipe using AI provider
-            recipe: Recipe = await self.provider.extract_recipe_data(html_content, url)
+            recipe: Recipe = await self.provider.extract_recipe_data(fetch_content, url)
             return {
                 "recipe": recipe,
                 "num_ingredients": len(recipe.ingredients),
@@ -102,13 +102,8 @@ class AIService:
         for store in stores:
             try:
                 logger.info(f"[{self.name}] Searching products in store {store.name} from ingredient {ingredient.name}")
-                fetch_result = await self.web_fetcher.fetch_html_content(
-                    url=store.get_search_url(ingredient.name),
-                    html_selectors=store.html_selectors,
-                    clean_html=True,
-                    use_cache=False
-                )
-                # result = await self.provider.search_best_match_products(ingredient, fetch_result)
+                fetch_content = await self.web_fetcher.fetch_html_content(url=store.get_search_url(ingredient.name), html_selectors=store.html_selectors)
+                result = await self.provider.search_best_match_products(ingredient, fetch_content)
                 # if result:
                     # carts.extend(result)
             except Exception as e:

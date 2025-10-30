@@ -183,7 +183,7 @@ class BaseAIProvider(ABC):
             # Return minimal structure if parsing fails
             return Recipe.default()
 
-    async def search_best_match_products(self, ingredient: Ingredient, store: StoreConfig, html_content: str) -> List[Product]:
+    async def search_best_match_products(self, ingredient: Ingredient, store: StoreConfig, html_content: List[dict]) -> List[Product]:
         """Search grocery products for an ingredient using AI."""
 
         logger.info(f"[{self.name}] Searching grocery products for {ingredient.name} in {store.name}")
