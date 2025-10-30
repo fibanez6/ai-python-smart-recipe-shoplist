@@ -131,10 +131,10 @@ STORE_CONFIGS: dict[str, StoreConfig] = {
             "product_tile": ".product-tile",
             "product_name": '.product-tile__name',
             "product_price": '.product-tile__price',
-            "product_price_unit": '.product-tile__price--unit p',
+            "product_price_unit": '.product-tile__unit-of-measurement',
             "product_image": '.product-tile__picture img',
             "product_brand": '.product-tile__brandname',
-            "product_url": '.product-tile a'
+            "product_url": '.product-tile__link'
         }
     ),
     

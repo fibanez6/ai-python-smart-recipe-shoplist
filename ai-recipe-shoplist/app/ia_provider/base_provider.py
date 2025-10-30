@@ -188,7 +188,7 @@ class BaseAIProvider(ABC):
 
         Guidelines:
         - Search each store for the listed ingredients, considering quantity and unit.
-        - Prioritize name similarity, product relevance, brand quality, and value for money (price vs size).
+        - Prioritize name similarity, product relevance, brand quality, and value for money (price per unit) or (price vs size).
         - Include organic or premium options where available.
         - Round up quantities as needed to fulfill ingredient requirements.
         - Output strictly valid JSON with no extra text or comments.
@@ -200,7 +200,7 @@ class BaseAIProvider(ABC):
         Extract grocery product information from the grocery website for a list of ingredients.
 
         Store to search:
-        {store.name} {store.get_product_url(ingredient.name)}
+        {store.name}
 
         Ingredients:
         {ingredient}

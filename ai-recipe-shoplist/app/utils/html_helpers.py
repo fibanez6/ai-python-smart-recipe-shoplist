@@ -128,11 +128,18 @@ def _extract_by_product_tile_selector(html_content: str, product_title: str, sel
                 element = tile.select_one(selector)
                 if element:
                     if element.name == "img":
-                        tile_data[name] = element.get("src", "")
+                        tile_data[name] = element.get("src", None)
                     elif element.name == "a":
-                        tile_data[name] = element.get("href", "")
+                        tile_data[name] = element.get("href", None)
                     else:
                         tile_data[name] = element.get_text(strip=True)
+                else:
+                    logger.warning(f"[WebFetcher] Product Tile: Selector '{name}' not found in tile")
+
+            # Remove keys with empty string or None values
+            tile_data = {k: v for k, v in tile_data.items() if v not in ("", None)}
+
+            # Append tile data to the list
             data.append(tile_data)
 
         if logger.isEnabledFor(logging.DEBUG):

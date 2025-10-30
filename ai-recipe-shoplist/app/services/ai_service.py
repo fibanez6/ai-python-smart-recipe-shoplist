@@ -93,12 +93,12 @@ class AIService:
                 "message": f"Failed in extracting recipe",
             }
 
-    async def search_grocery_products_intelligently(self, ingredient: Ingredient, stores: list[StoreConfig] = []) -> list[ShopphingCart]:
+    async def search_grocery_products_intelligently(self, ingredient: Ingredient, stores: list[StoreConfig] = []) -> list[Product]:
         """Search grocery stores for deals on ingredients using AI."""
         logger.info(f"[{self.name}] Searching grocery products for ingredients using {self.provider_name} AI provider")
 
         # Fetch the products search results
-        carts: list[Product] = []
+        products: list[Product] = []
         for store in stores:
             try:
                 # Fetch search page content
@@ -109,16 +109,14 @@ class AIService:
                 # Search for best match products using AI provider
                 result = await self.provider.search_best_match_products(ingredient, store, fetch_content)
                 if result:
-                    carts.extend(result)
+                    products.append(result)
             except Exception as e:
                 logger.error(f"[{self.name}] Error searching products in store {store.name}: {e}")
+                continue
 
-        # try:
-        #     carts: list[ShopphingCart] = await self.provider.search_best_match_products(ingredient, stores)
-        #     return carts
-        # except Exception as e:
-        #     print(f"[{self.name}] Error extracting products: {e}")
-        #     return [ShopphingCart.default()]
+        logger.info(f"[{self.name}] Total products found: {len(products)}")
+        return products
+
     
     # async def optimize_product_matching(self, ingredient: Ingredient, 
     #                                   store_results: dict[str, list[Product]]) -> dict[str, list[Product]]:

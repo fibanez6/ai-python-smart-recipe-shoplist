@@ -20,17 +20,35 @@ class RichJSONFormatter(logging.Formatter):
         message = record.msg
 
         # If message is a tuple/list (msg, dict), pretty-print the dict only
-        if isinstance(message, (tuple, list)) and len(message) == 2 and isinstance(message[1], dict):
-            try:
-                based_truncated = base.split(str(message))[0]
-                json_pretty = json.dumps(message[1], indent=2, ensure_ascii=False, default=str)
-                # Only print the pretty JSON, not the tuple/list as a string
-                return f"{based_truncated}{message[0]}\n{json_pretty}"
-            except Exception:
-                return base
+        if isinstance(message, (tuple, list)) and len(message) == 2:
+
+            # If the second element is a dict, pretty-print it
+            if isinstance(message[1], dict):
+                # print("---------- DEBUG: RichJSONFormatter detected tuple/list with dict -----------")
+                try:
+                    based_truncated = base.split(str(message))[0]
+                    json_pretty = json.dumps(message[1], indent=2, ensure_ascii=False, default=str)
+                    # Only print the pretty JSON, not the tuple/list as a string
+                    return f"{based_truncated}{message[0]}\n{json_pretty}"
+                except Excehption:
+                    return base
+
+            # If the second element is a JSON string, pretty-print it
+            elif ((message[1].strip().startswith("{") and message[1].strip().endswith("}")) or 
+                  (message[1].strip().startswith("[") and message[1].strip().endswith("]"))): 
+                # print("---------- DEBUG: RichJSONFormatter detected tuple/list with str -----------")
+                try:
+                    based_truncated = base.split(str(message))[0]
+                    parsed = json.loads(message[1])
+                    pretty = json.dumps(parsed, indent=2, ensure_ascii=False, default=str)
+                    # Only print the pretty JSON, not the tuple/list as a string
+                    return f"{based_truncated}{message[0]}\n{pretty}"
+                except Exception:
+                    return base
 
         # If message is a dict, pretty-print it only
         if isinstance(message, dict):
+            # print("---------- DEBUG: RichJSONFormatter detected dict -----------")
             try:
                 based_truncated = base.split(str(message))[0]
                 json_pretty = json.dumps(message, indent=2, ensure_ascii=False, default=str)
@@ -41,6 +59,7 @@ class RichJSONFormatter(logging.Formatter):
 
         # If message is a JSON string, pretty-print it after the base log
         try:
+            # print("---------- DEBUG: RichJSONFormatter detected JSON string -----------")
             parsed = json.loads(record.getMessage())
             pretty = json.dumps(parsed, indent=2, ensure_ascii=False, default=str)
             return f"{base}\n{pretty}"

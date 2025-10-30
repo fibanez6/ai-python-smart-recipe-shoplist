@@ -91,7 +91,7 @@ class Recipe(BaseModel):
 
 class Product(BaseModel):
     """Represents a grocery store product."""
-    title: str = Field(..., description="Full product name from the store")
+    name: str = Field(..., description="Full product name from the store")
     ingredient: str = Field(..., description="Associated ingredient name")
     price: float = Field(..., description="Product price")
     store: str = Field(..., description="Store name")
@@ -101,16 +101,28 @@ class Product(BaseModel):
     size: Optional[str] = Field(None, description="Product size/weight")
     unit_price: Optional[float] = Field(None, description="Price per unit")
     availability: Optional[bool] = Field(True, description="Product availability")
+    ia_reasoning: Optional[str] = Field(None, description="AI reasoning for product selection")
 
     @staticmethod
     def default() -> "Product":
         """Returns a default example product."""
         return Product(
-            title="Example Product",
+            name="Example Product",
             ingredient="Example Ingredient",
             price=0.0,
             store="Example Store"
         )
+
+    def display(self) -> dict:
+        """Return a dict with only selected fields."""
+        return {
+            "name": self.name,
+            "price": self.price,
+            "url": self.url,
+            "image_url": self.image_url,
+            "brand": self.brand,
+            "unit_price": self.unit_price,
+        }
 
 class ShopphingCart(BaseModel):
     """Represents a shopping cart with products."""

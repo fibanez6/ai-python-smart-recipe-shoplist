@@ -228,7 +228,8 @@ def log_ai_chat_response(provider_name: str, response: str, logger: logging.Logg
                 logger.log(level, f"[{provider_name}] AI Response refused: {message.refusal}")
                 return
             elif hasattr(message, 'parsed') and message.parsed:
-                logger.log(level, f"[{provider_name}] AI Response parsed: {message.parsed}")
+                parsed = message.parsed.model_dump_json(indent=2)
+                logger.debug((f"[{provider_name}] AI Response parsed:", parsed))
                 return
             else:
                 content = message.content if hasattr(message, 'content') else message

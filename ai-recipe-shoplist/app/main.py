@@ -38,6 +38,7 @@ from .services.bill_generator import bill_generator
 from .services.grocery_service import grocery_service
 from .services.price_optimizer import price_optimizer
 from .services.web_fetcher import get_web_fetcher
+import asyncio
 
 
 @asynccontextmanager
@@ -202,15 +203,20 @@ async def search_stores(request: SearchStoresRequest):
         logger.info(f"[API] Searching stores for {len(request.ingredients)} ingredients")
 
         # Search all stores (or specified stores)
-        stores = [store.lower() for store in request.stores]
+        stores_names = [store.lower() for store in request.stores]
         ingredients: list[Ingredient] = request.ingredients
 
-        stores = grocery_service.get_stores(stores)
+        stores = grocery_service.get_stores(stores_names)
 
         # Use AI to optimize product matching
         ai_service = get_ai_service()
-        product_results = await ai_service.search_grocery_products_intelligently(ingredients[0], stores)
 
+        product_results = []
+        for ingredient in ingredients:
+            logger.info(f"[API] Searching stores for ingredient: {ingredient.name}")
+            products = await ai_service.search_grocery_products_intelligently(ingredient, stores)
+            product_results.extend(products)
+            await asyncio.sleep(0.5)
 
         # optimized_results = {}
         
@@ -238,15 +244,14 @@ async def search_stores(request: SearchStoresRequest):
         return APIResponse(
             success=True,
             data={
-                "stores": stores,
-                # "optimized_results": optimized_results,
-                "products": product_results
+            "stores": [store.display_name for store in stores],
+            "products": [product.display() for product in product_results]
             },
             timestamp=datetime.now().isoformat()
         )
         
     except Exception as e:
-        logger.error(f"Error occurred while searching stores: {e}")
+        logger.error(f"[API] Error occurred while searching stores: {e}")
         # Provide more user-friendly error messages
         if "rate limit" in str(e).lower():
             detail = "AI service rate limit exceeded. Please try again in a few moments."
