@@ -26,7 +26,7 @@ class WebFetcherSettings(BaseSettings):
 class WebDataServiceSettings(BaseSettings):
     """Web data service configuration settings."""
     storage_path: Path = Field(default=Path("/tmp/web_cache"), description="Path for storing fetched web content")
-    html_to_text: bool = Field(default=False,description="Convert HTML content to text after extraction")
+    html_to_text: bool = Field(default=False, description="Convert HTML content to text after extraction")
 
     model_config = ConfigDict(env_prefix="WEB_DATA_SERVICE_")
 

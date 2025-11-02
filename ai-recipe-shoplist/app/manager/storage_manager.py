@@ -86,10 +86,19 @@ class StorageManager:
         }
 
         try:
+            # Prepare data for writing based on format
+            if format == "json" or format == "dict" or isinstance(data, dict):
+                to_write = json.dumps(data, ensure_ascii=False, indent=2)
+                metadata["data_format"] = "json"
+            else:
+                to_write = data
+
+            # Write the content to the file
             with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(data)
+                f.write(to_write)
             logger.debug(f"[{self.name}] Saved content to: {file_path}")
 
+            # Write the metadata mapping file
             with open(mapping_path, 'w', encoding='utf-8') as f:
                 json.dump(metadata, f, ensure_ascii=False, indent=2)
             metadata["url_mapping_file"] = str(mapping_path)

@@ -1,4 +1,5 @@
 from functools import partial
+import logging
 
 from app.services.web_fetcher import get_web_fetcher
 
@@ -41,12 +42,19 @@ class WebDataService:
         # Fetch from web
         logger.info(f"{self.name}: Fetching data from web for {url}")
         web_data = await self.web_fetcher.fetch_url(url)
+
+        # Debug: print keys if data is dict
+        if logger.isEnabledFor(logging.DEBUG) and isinstance(web_data, dict):
+            logger.debug(f"{self.name}: Web data keys: {list(web_data.keys())}")
+            logger.debug(f"{self.name}: Web data preview: {web_data.get('data', '')[:200]}")
+
         if "data" in web_data:
             raw_data = web_data.get("data")
 
             self.cache_manager.save(url, raw_data, format=data_format)
             self.content_storage.save(url, raw_data, format=data_format)
 
+        web_data["data_format"] = data_format
         return web_data
 
     async def _process(self, url: str, raw_data: dict, extractor) -> dict:
@@ -55,11 +63,16 @@ class WebDataService:
         logger.info(f"{self.name}: Extracting relevant info for {url}")
         processed_data = extractor(raw_data)
 
+        if "data" not in processed_data:
+            logger.warning(f"{self.name}: Failed to extract data")
+            raise ValueError("Data extraction failed, no 'data' key in processed data")
+
         # Save processed data to cache and disk
         if processed_data:
-            self.cache_manager.save(url, processed_data, alias="processed")
-            self.content_storage.save(url, processed_data, alias="processed")
+            self.cache_manager.save(url, processed_data.get("data"), alias="processed", format=processed_data.get("data_processed_format"))
+            self.content_storage.save(url, processed_data.get("data"), alias="processed", format=processed_data.get("data_processed_format"))
 
+        processed_data["data_processed"] = True
         return processed_data
 
     # def _extract_relevant_info(self, data: dict) -> dict:
@@ -102,9 +115,14 @@ class WebDataService:
                 logger.warning(f"{self.name}: No raw data fetched for {url}")
                 return None
 
+            # Process the fetched data
             raw_data = fetch_data.get("data")
             processed_data = await self._process(url, raw_data, extractor)
-            return processed_data
+
+            # Merge processed data into fetch data
+            fetch_data.update(processed_data)
+
+            return fetch_data
         except Exception as e:
             logger.error(f"[{self.name}] Error fetching or processing data for {url}: {e}")
             raise

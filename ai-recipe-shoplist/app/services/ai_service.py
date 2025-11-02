@@ -1,6 +1,7 @@
 """AI service for intelligent web crawling and grocery search optimization."""
 
 from enum import Enum
+import logging
 from typing import Optional
 import traceback, pprint
 
@@ -17,7 +18,7 @@ from ..ia_provider import (
     OpenAIProvider,
     StubProvider,
 )
-from ..models import Ingredient, Product, Recipe, ShopphingCart
+from ..models import AIServiceChatResponse, Ingredient, Product, Recipe, ShopphingCart
 from ..utils.ai_helpers import (
     RECIPE_SHOPPING_ASSISTANT_PROMPT,
     RECIPE_SHOPPING_ASSISTANT_SYSTEM,
@@ -77,22 +78,30 @@ class AIService:
             # Use web data service to fetch and process content
             fetch_result = await self.web_data_service.fetch_and_process(url, html_extractor, data_format="html")
 
-            logger.debug(f"[{self.name}] Fetched and processed data: {fetch_result.keys()}")
+            if logger.isEnabledFor(logging.DEBUG):
+                if isinstance(fetch_result, dict):
+                    logger.debug(f"[{self.name}] Fetched result data keys: {list(fetch_result.keys())}")
+                logger.debug(f"[{self.name}] Fetched result data: {str(fetch_result)[:100]}")
 
-            fetch_data_processed = fetch_result.get("data")
-
+            if "data" not in fetch_result:
+                raise ValueError("No data found in fetched result for recipe extraction")
+            
             # Extract recipe using AI provider
-            recipe: Recipe = await self.provider.extract_recipe_data(fetch_data_processed, url)
+            fetch_data_processed = fetch_result.get("data")
+            ia_response: AIServiceChatResponse[Recipe] = await self.provider.extract_recipe_data(fetch_data_processed, url)
+            
+            recipe: Recipe = ia_response.parsed if ia_response.parsed else Recipe.default()
+
             return {
                 "recipe": recipe,
                 "num_ingredients": len(recipe.ingredients),
                 "message": f"Successfully extracted recipe: {recipe.title}",
-                "fetch_info": {
+                "ai_info": {
                     "data_from": fetch_result.get("data_from", None),
                     "data_size": fetch_result.get("data_size", None),
                     "data_format": fetch_result.get("data_format", None),
-                    "final_url": fetch_result.get("url", url),
                     "timestamp": fetch_result.get("timestamp", None),
+                    **(ia_response.stats or {})
                 }
             }
         except Exception as e:

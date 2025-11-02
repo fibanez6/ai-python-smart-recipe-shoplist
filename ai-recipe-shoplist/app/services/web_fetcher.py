@@ -63,7 +63,7 @@ class WebFetcher:
                 return {
                     "url": str(response.url),
                     "status_code": response.status_code,
-                    "headers": dict(response.headers),
+                    # "headers": dict(response.headers),
                     "timestamp": time.time(),
                     "data_size": content_length,
                     "data_from": "web_fetcher",

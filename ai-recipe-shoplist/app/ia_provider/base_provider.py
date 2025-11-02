@@ -2,15 +2,15 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypeVar
 
 from ..config.logging_config import get_logger, log_function_call
 from ..config.store_config import StoreConfig
-from ..models import Ingredient, Product, Recipe, ShopphingCart
+from ..models import AIServiceChatResponse, Ingredient, Product, Recipe, ShopphingCart
 from ..utils.ai_helpers import (
     log_ai_chat_query,
     log_ai_chat_response,
-    safe_json_parse,
+    get_ai_token_stats
 )
 
 # Get module logger
@@ -26,12 +26,12 @@ from ..utils.retry_utils import (
     with_ai_retry,
 )
 
-
 @dataclass
 class ChatMessageResult:
     content: str
     parsed: Any = None
     refusal: Any = None
+    stats: dict[str, Any] = None
 
 class BaseAIProvider(ABC):
     """Complete a chat conversation using AI Models with tenacity retry logic."""
@@ -104,7 +104,8 @@ class BaseAIProvider(ABC):
                 return ChatMessageResult(
                     content=message.content or None,
                     parsed=getattr(message, "parsed", None),
-                    refusal=getattr(message, "refusal", None)
+                    refusal=getattr(message, "refusal", None),
+                    stats=get_ai_token_stats(self.name, response)
                 )
             except Exception as e:
                 # Convert provider-specific errors to our retry framework
@@ -132,7 +133,7 @@ class BaseAIProvider(ABC):
                 refusal="AI provider chat calls are disabled."
             )
             
-    async def extract_recipe_data(self, html_content: str, url: str) -> Recipe:
+    async def extract_recipe_data(self, html_content: str, url: str) -> AIServiceChatResponse[Recipe]:
         """Extract structured recipe data from HTML using AI."""
 
         logger.info(f"[{self.name}] Extracting recipe data from URL: {url}")
@@ -146,6 +147,7 @@ class BaseAIProvider(ABC):
         - Output strictly valid JSON, with no extra text or comments.
         - Normalize ingredient names and quantities.
         - Include the recipe title, a list of ingredients (with name and quantity), and step-by-step instructions.
+        - No ingredient should be missing or duplicated.
         """
 
         # Use centralized prompt template
@@ -169,13 +171,16 @@ class BaseAIProvider(ABC):
         
         try:
             response = await self.complete_chat(chat_params)
-            return response.parsed if response.parsed else Recipe.default()
+            return AIServiceChatResponse[Recipe](
+                success=response.parsed is not None,
+                content=response.content,
+                parsed=response.parsed,
+                stats=response.stats
+            )
         except Exception as e:
             logger.error(f"[{self.name}] Error in extract_recipe_data: {e}")
+            raise Exception("Failed to extract recipe data using AI provider.") from e
             
-            # Return minimal structure if parsing fails
-            return Recipe.default()
-
     async def search_best_match_products(self, ingredient: Ingredient, store: StoreConfig, fetch_content: list[dict]) -> list[Product]:
         """Search grocery products for an ingredient using AI."""
 
@@ -228,7 +233,6 @@ class BaseAIProvider(ABC):
 
             # Return minimal structure if parsing fails
             return []
-
 
     # async def match_products(self, ingredient: str, products: list[dict[str, Any]]) -> list[dict[str, Any]]:
     #     """Match and rank products for an ingredient using AI."""

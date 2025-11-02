@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field
+from typing import Generic, TypeVar, Optional
 
 
 class QuantityUnit(str, Enum):
@@ -46,7 +47,6 @@ class QuantityUnit(str, Enum):
 
     DEFAULT = UNIT
 
-
 class Ingredient(BaseModel):
     """Represents a recipe ingredient with quantity and unit."""
     name: str = Field(..., description="Normalised name of the ingredient without adjectives")
@@ -83,7 +83,7 @@ class Recipe(BaseModel):
     def default() -> "Recipe":
         """Returns a default example recipe."""
         return Recipe(
-            title="Recipe Title",
+            title="Example Recipe",
             url="http://example.com/recipe",
             ingredients=[],
             instructions=[]
@@ -151,7 +151,6 @@ class StoreSearchResult(BaseModel):
     products: list[Product] = Field(default_factory=list, description="Found products")
     search_time: Optional[float] = Field(None, description="Search duration in seconds")
 
-
 class ShoppingListItem(BaseModel):
     """An item in the shopping list with selected product."""
     ingredient: Ingredient = Field(..., description="Original ingredient")
@@ -160,14 +159,12 @@ class ShoppingListItem(BaseModel):
     estimated_cost: Optional[float] = Field(None, description="Estimated cost")
     store_options: Optional[dict[str, Product]] = Field(None, description="Available products from different stores")
 
-
 class OptimizationResult(BaseModel):
     """Result of price optimization across stores."""
     items: list[ShoppingListItem] = Field(..., description="Optimized shopping list")
     total_cost: float = Field(..., description="Total estimated cost")
     stores_breakdown: dict[str, float] = Field(..., description="Cost per store")
     savings: Optional[float] = Field(None, description="Savings vs. single store")
-
 
 class Bill(BaseModel):
     """Generated shopping bill."""
@@ -182,12 +179,10 @@ class Bill(BaseModel):
     stores: list[str] = Field(..., description="Stores to visit")
     stores_breakdown: Optional[dict[str, float]] = Field(None, description="Cost breakdown by store")
 
-
 class ProcessRecipeRequest(BaseModel):
     """Request to process a recipe URL."""
     url: str = Field(..., description="Recipe URL to process")
     servings_adjustment: Optional[int] = Field(None, description="Adjust servings")
-
 
 class GenerateBillRequest(BaseModel):
     """Request to generate a shopping bill."""
@@ -195,10 +190,19 @@ class GenerateBillRequest(BaseModel):
     optimization_result: OptimizationResult = Field(..., description="Optimization result")
     format: str = Field("pdf", description="Output format: pdf or html")
 
-
 class APIResponse(BaseModel):
     """Standard API response wrapper."""
     success: bool = Field(..., description="Whether the request was successful")
     data: Optional[Any] = Field(None, description="Response data")
     error: Optional[str] = Field(None, description="Error message if any")
     timestamp: str = Field(..., description="Response timestamp")
+
+
+T = TypeVar('T')
+class AIServiceChatResponse(BaseModel, Generic[T]):
+    """Response from an AI service, including raw content, parsed result, refusal info, and stats."""
+    success: bool = Field(..., description="Whether the AI call was successful")
+    content: str = Field(..., description="Raw content from the AI service")
+    parsed: Optional[T] = Field(None, description="Parsed result (if any)")
+    refusal: Optional[Any] = Field(None, description="Refusal or error info (if any)")
+    stats: Optional[dict] = Field(None, description="Additional statistics or metadata")

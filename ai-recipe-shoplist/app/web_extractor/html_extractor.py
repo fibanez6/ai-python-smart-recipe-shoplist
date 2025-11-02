@@ -138,7 +138,7 @@ def _extract_by_selectors(html_content: str, selectors: dict[str, str]) -> list[
         logger.warning(f"[WebFetcher] Error extracting HTML with selectors: {e}, returning original content")
         return html_content
 
-def clean_html(html_content: str) -> str:
+def clean_html(html_content: str) -> dict:
     """
     Clean HTML content for AI processing by removing unnecessary elements.
 
@@ -157,14 +157,15 @@ def clean_html(html_content: str) -> str:
         _remove_html_tags(soup)
 
         if WEB_DATA_SERVICE_SETTINGS.html_to_text:
-            return _get_text_from_html(soup)
-        return _remove_whitespaces_and_newlines(str(soup))
+            return {"data_processed_format": "text", "data": _get_text_from_html(soup)}
+        else:
+            return {"data_processed_format": "html", "data": _remove_whitespaces_and_newlines(str(soup))}
 
     except Exception as e:
         logger.warning(f"[WebFetcher] Error cleaning HTML: {e}, returning original content")
         return html_content
     
-def clean_html_with_selectors(html_content: str, selectors: dict[str, str]) -> list[dict]:
+def clean_html_with_selectors(html_content: str, selectors: dict[str, str]) -> dict:
     """
     Clean and extract HTML content using specific CSS selectors.
 
@@ -188,5 +189,11 @@ def clean_html_with_selectors(html_content: str, selectors: dict[str, str]) -> l
         filtered_selectors = {
             k: v for k, v in selectors.items() if k != "product_tile"
         }
-        return _extract_by_product_tile_selector(html_content, product_tile_selector, filtered_selectors)
-    return _extract_by_selectors(html_content, selectors)
+        return {
+            "data_processed_format": "dict",
+            "data": _extract_by_product_tile_selector(html_content, product_tile_selector, filtered_selectors)
+        }
+    return {
+        "data_processed_format": "dict", 
+        "data": _extract_by_selectors(html_content, selectors)
+        }

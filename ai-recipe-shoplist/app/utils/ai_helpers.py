@@ -202,7 +202,30 @@ def log_ai_chat_query(provider_name: str, chat_params: list[dict[str, str]], log
 
             logger.debug(f"[{provider_name}] Message {i+1} ({msg.get('role', 'unknown')}): \n\"\"\"\n{content}\n\"\"\"")
 
-def log_ai_chat_response(provider_name: str, response: str, logger: logging.Logger, level: int = logging.DEBUG) -> None:
+
+def get_ai_token_stats(provider_name: str, response: Any) -> dict:
+    """
+    Get token statistics for AI input text.
+    
+    Args:
+        text: Input text
+        tokenizer: TokenizerService instance
+
+    Returns:
+        Dictionary with token statistics
+    """
+    usage = response.usage
+    stats = {
+            "provider:": provider_name,
+            "model:": response.model,
+            "prompt tokens:": usage.prompt_tokens,
+            "completion tokens:": usage.completion_tokens,
+            "total tokens:": usage.total_tokens
+        }
+    return stats
+
+
+def log_ai_chat_response(provider_name: str, response: Any, logger: logging.Logger, level: int = logging.DEBUG) -> None:
     """
     Log AI response at specified log level.
     
@@ -212,12 +235,7 @@ def log_ai_chat_response(provider_name: str, response: str, logger: logging.Logg
         logger: Logger instance
         level: Logging level (e.g., logging.DEBUG)
     """
-    usage = response.usage
-    stats = {
-            "Prompt tokens:": usage.prompt_tokens,
-            "Completion tokens:": usage.completion_tokens,
-            "Total tokens:": usage.total_tokens
-        }
+    stats = get_ai_token_stats(provider_name, response)
 
     logger.info(f"[{provider_name}] OpenAI API call stats: {stats} ")
 
