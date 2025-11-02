@@ -33,7 +33,7 @@ class CacheManager:
         """Generate a hash for the URL to use as filename base."""
         return hashlib.md5(f"{alias}:{url}".encode()).hexdigest()
 
-    def save(self, url: str, data: str, alias: str = SOURCE_ALIAS, format: str = "txt") -> dict:
+    def save(self, url: str, data: any, alias: str = SOURCE_ALIAS, format: str = "txt") -> dict:
         """
         Save content to in-memory cache.
         """
@@ -55,6 +55,7 @@ class CacheManager:
             "timestamp": time.time(),
             "data_size": len(data),
             "data_format": format,
+            "data": data
         }
 
         self.cache[url_hash] = cache_entry

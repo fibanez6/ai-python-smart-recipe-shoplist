@@ -2,9 +2,10 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, TypeVar
+import json
+from typing import Any
 
-from ..config.logging_config import get_logger, log_function_call
+from ..config.logging_config import get_logger
 from ..config.store_config import StoreConfig
 from ..models import AIServiceChatResponse, Ingredient, Product, Recipe, ShopphingCart
 from ..utils.ai_helpers import (
@@ -92,6 +93,15 @@ class BaseAIProvider(ABC):
 
                 log_ai_chat_query(self.name, chat_params, logger)
 
+                if not AI_SERVICE_SETTINGS.provider_chat_enabled:
+                    logger.warning(f"[{self.name}] AI provider chat calls are disabled. Skipping API call.")
+                    return ChatMessageResult(
+                        content="",
+                        parsed=None,
+                        refusal="AI provider chat calls are disabled.",
+                        stats={}
+                    )
+
                 if "response_format" in chat_params:
                     response = await self.client.chat.completions.parse(**chat_params)
                 else:
@@ -119,19 +129,11 @@ class BaseAIProvider(ABC):
                 else:
                     raise
                 
-        if AI_SERVICE_SETTINGS.provider_chat_enabled:
-            try:
-                return await chat_completion_request()
-            except Exception as e:
-                logger.error(f"[{self.name}] OpenAI API error: {e}")
-                raise
-        else:
-            logger.info(f"[{self.name}] AI provider chat calls are disabled. Skipping API call.")
-            return ChatMessageResult(
-                content="",
-                parsed=None,
-                refusal="AI provider chat calls are disabled."
-            )
+        try:
+            return await chat_completion_request()
+        except Exception as e:
+            logger.error(f"[{self.name}] OpenAI API error: {e}")
+            raise
             
     async def extract_recipe_data(self, html_content: str, url: str) -> AIServiceChatResponse[Recipe]:
         """Extract structured recipe data from HTML using AI."""
@@ -186,6 +188,8 @@ class BaseAIProvider(ABC):
 
         logger.info(f"[{self.name}] Searching grocery products for {ingredient.name} in {store.name}")
 
+        store_content = json.dumps(fetch_content, separators=(",", ":"))
+
         # Set system message
         system = """
         You are an AI assistant specialized in searching and comparing grocery products online.
@@ -193,17 +197,17 @@ class BaseAIProvider(ABC):
 
         Guidelines:
         - Search the store for the listed ingredient, considering quantity and unit.
+        - Return the best-matched product with the quantity needed based on the ingredient.
+        - Round up quantities as needed to meet ingredient requirements.
         - Prioritize name similarity, product relevance, brand quality, and value (price per unit).
         - Include organic or premium options where applicable.
-        - Round up quantities as needed to meet ingredient requirements.
         - Output strictly valid JSON with no extra text or comments.
-        - Return the best-matched product with the quantity needed based on the ingredient.
         - If no suitable match is found, clearly indicate this in the output.
         """
 
         # Use centralized prompt template
         prompt = f"""
-        Extract grocery product information from the grocery website for a list of ingredients.
+        Extract grocery the best-matched product from the store content.
 
         Store to search:
         {store.display_name} ({store.product_url_template})
@@ -211,8 +215,8 @@ class BaseAIProvider(ABC):
         Ingredients:
         {ingredient}
 
-        Products content:
-        {fetch_content}
+        Store content:
+        {store_content}
         """
 
         # Truncate prompt if too long

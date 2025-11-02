@@ -112,15 +112,15 @@ class AIService:
                 "message": f"Failed in extracting recipe",
             }
 
-    async def search_grocery_products_intelligently(self, ingredient: Ingredient, stores: list[StoreConfig] = []) -> list[Product]:
+    async def search_grocery_products_intelligently(self, ingredient: Ingredient, stores: list[StoreConfig] = []) -> dict:
         """Search grocery stores for deals on ingredients using AI."""
         logger.info(f"[{self.name}] Searching grocery products for ingredients using {self.provider_name} AI provider")
 
-        # Fetch the products search results
-        products: list[Product] = []
-        stats: list[dict] = []
-
         try:
+            # Fetch the products search results
+            store_fetch_results = {}
+
+            # Iterate over stores to fetch search results
             for store in stores:
                 try:
                     # Fetch search page content
@@ -138,30 +138,22 @@ class AIService:
 
                     if "data" not in fetch_result:
                         raise ValueError("No data found in fetched result for ingredient extraction")
-
-                    # Search for best match products using AI provider
-                    fetch_data_processed = fetch_result.get("data")
-                    result = await self.provider.search_best_match_products(ingredient, store, fetch_data_processed)
-
-                    if result.parsed:
-                        products.append(result.parsed)
-
+                    
+                    store_fetch_results[store.store_id] = fetch_result
                 except Exception as e:
                     logger.error(f"[{self.name}] Error searching products in store {store.name}: {e}")
                     continue
 
-            logger.info(f"[{self.name}] Total products found: {len(products)}")
+            # Search for best match products using AI provider
+            fetch_data_processed = [fetch.get("data") for fetch in store_fetch_results.values()]
+            ia_response = await self.provider.search_best_match_products(ingredient, store, fetch_data_processed)
+
             return {
-                "products": products,
-                "num_items": len(products),
-                "message": f"Successfully extracted products from store: {store.name}",
-                # "ai_info": {
-                #     "data_from": fetch_result.get("data_from", None),
-                #     "data_size": fetch_result.get("data_size", None),
-                #     "data_format": fetch_result.get("data_format", None),
-                #     "timestamp": fetch_result.get("timestamp", None),
-                #     **(ia_response.stats or {})
-                # }
+                "product": ia_response.parsed or None,
+                "ingredient": ingredient.name,
+                "ai_info": {
+                    **(ia_response.stats or {})
+                }
             }
         except Exception as e:
             logger.error(f"[{self.name}] Error extracting products: {e}")

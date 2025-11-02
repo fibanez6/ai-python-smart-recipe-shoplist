@@ -1,6 +1,7 @@
 """Main FastAPI application for the AI Recipe Shoplist Crawler."""
 
 import json
+import logging
 import pprint
 import traceback
 from datetime import datetime
@@ -216,14 +217,24 @@ async def search_stores(request: SearchStoresRequest):
         ai_service = get_ai_service()
 
         product_results = []
+        ia_stats = []
         for ingredient in ingredients:
             logger.info(f"[API] Searching stores for ingredient: {ingredient.name}")
 
             # Search for products using AI
             response = await ai_service.search_grocery_products_intelligently(ingredient, stores)
 
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug((f"[API] AI search for ingredient '{ingredient.name}' - output:", response))
+
             # Process the AI response for this ingredient
-            product_results.extend(response.get("products", []))
+            product = response.get("product")
+            if product:
+                product_results.append(product)
+            
+            ai_info = response.get("ai_info", {})
+            if ai_info:
+                ia_stats.append(ai_info)
 
             # Be polite to avoid rate limits
             await asyncio.sleep(0.5)
@@ -255,13 +266,15 @@ async def search_stores(request: SearchStoresRequest):
             success=True,
             data={
                 "stores": [store.display_name for store in stores],
-                "products": [product.display() for product in product_results]
+                "products": [product.display() for product in product_results],
+                "ia_stats": ia_stats
             },
             timestamp=datetime.now().isoformat()
         )
         
     except Exception as e:
         logger.error(f"[API] Error occurred while searching stores: {e}")
+        logger.error("Stack trace:\n" + pprint.pformat(traceback.format_exc()))
         # Provide more user-friendly error messages
         if "rate limit" in str(e).lower():
             detail = "AI service rate limit exceeded. Please try again in a few moments."

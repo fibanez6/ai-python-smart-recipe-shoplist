@@ -155,10 +155,12 @@ class StorageManager:
             return {}
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                data = f.read()
+            type_format = metadata.get("data_format", "txt")
 
-            logger.info(f"[{self.name}] Loaded data from disk for {url} (hash: {url_hash})")
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f) if type_format == "json" else f.read()
+
+            logger.info(f"[{self.name}] Loaded {type_format} data from disk for {url} (hash: {url_hash})")
             logger.debug(f"[{self.name}] Loaded data from file: {file_path}")
             metadata.update(LOADED_FROM_DISK)
             metadata["data"] = data

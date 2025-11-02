@@ -102,7 +102,7 @@ class Product(BaseModel):
     size: Optional[str] = Field(None, description="Product size/weight")
     unit_price: Optional[float] = Field(None, description="Price per unit")
     availability: Optional[bool] = Field(True, description="Product availability")
-    ia_reasoning: Optional[str] = Field(None, description="AI reasoning for product selection")
+    ia_reasoning: Optional[str] = Field(None, description="Short AI reasoning for product selection")
 
     @staticmethod
     def default() -> "Product":

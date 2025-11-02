@@ -75,25 +75,6 @@ class WebDataService:
         processed_data["data_processed"] = True
         return processed_data
 
-    # def _extract_relevant_info(self, data: dict) -> dict:
-    #     """Extract relevant information from raw data."""
-    #     format_type = data.get("format")
-    #     raw_content = data.get("data", "")
-
-    #     if format_type == "html":
-    #         logger.info(f"{self.name}: Processing HTML content for AI consumption")
-    #         processed_content = clean_html_for_ai(raw_content)
-    #     elif format_type == "json":
-    #         logger.info(f"{self.name}: Processing JSON content for AI consumption")
-    #         processed_content = raw_content
-    #         # TODO
-    #         # Optionally process JSON further here
-    #     else:
-    #         logger.warning(f"{self.name}: Unknown data format for processing: {format_type}")
-    #         processed_content = raw_content
-
-    #     return {**data, "data": processed_content}
-
     async def fetch_and_process(self, url: str, extractor, data_format: str ="html") -> dict:
         """Fetch and process web data with caching."""
         log_function_call("WebDataService.fetch_and_process", {"url": url})
