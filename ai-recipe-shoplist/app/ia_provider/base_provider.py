@@ -71,26 +71,36 @@ class BaseAIProvider(ABC):
 
         return self.tokenizer.truncate_to_token_limit(text, self.max_tokens)
 
-    def _load_from_cache_or_storage(self, key: str) -> ChatCompletionResult | None:
+    def _load_from_cache_or_storage(self, key: str, model_class: type = None) -> ChatCompletionResult | None:
         """Load AI response from cache or storage."""
-
-        # Extract user message for cache key
+        
+        # Try cache first
         cached_response = self.cache_manager.load(key=key, alias=self.name)
         if cached_response:
             logger.info(f"[{self.name}] Loaded ai response from cache")
-            data_from = cached_response["data_from"]
-            chat_completion_request: ChatCompletionResult = cached_response["data"]
-            return chat_completion_request.model_copy(update={"metadata": { "data_from": data_from }})
+            return self._build_chat_result(cached_response, model_class)
 
-        # If not found in cache, check storage
+        # Try storage if cache miss
         disk_data = self.content_storage.load(key=key, alias=self.name, model_class=ChatCompletionResult)
         if disk_data:
-            logger.info(f"{self.name}: Loaded ai response from storage")
-            data_from = disk_data["data_from"]
-            chat_completion_request: ChatCompletionResult = disk_data.get("data")
-            return chat_completion_request.model_copy(update={"metadata": { "data_from": data_from }})
+            logger.info(f"[{self.name}] Loaded ai response from storage")
+            return self._build_chat_result(disk_data, model_class)
 
         return None
+    
+    def _build_chat_result(self, data: dict, model_class: type = None) -> ChatCompletionResult:
+        """Build ChatCompletionResult from cached/stored data."""
+        data_from = data["data_from"]
+        chat_result = data["data"]
+        
+        content = chat_result.content
+        if model_class:
+            content = model_class(**content)
+            
+        return chat_result.model_copy(update={
+            "content": content,
+            "metadata": {"data_from": data_from}
+        })
 
     async def complete_chat(self, params: any, **kwargs) -> ChatCompletionResult:
         """Complete a chat conversation."""
@@ -150,8 +160,10 @@ class BaseAIProvider(ABC):
         try:
             # Check cache first
             data_key = next((msg["content"] for msg in params.get("messages", []) if msg.get("role") == "user"), str(params))
-            cached_response = self._load_from_cache_or_storage(data_key)
-            
+            model_class = params.get("response_format", None)
+
+            # Try to load from cache or storage
+            cached_response = self._load_from_cache_or_storage(data_key, model_class=model_class)
             if cached_response:
                 return cached_response
             
