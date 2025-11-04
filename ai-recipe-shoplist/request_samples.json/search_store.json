@@ -1,30 +1,119 @@
 {
-  "ingredients": [
-    {
-      "name": "tomato",
-      "quantity": 1,
-      "unit": "kg",
-      "original_text": "1 kg / 2 lb ripe tomatoes (~7), cut into 8 wedges, core removed",
-      "optional": false,
-      "category": "vegetable",
-      "alternatives": null,
-      "notes": "ripe",
-      "quality": null,
-      "brand_preference": null
-    },
-    {
-      "name": "cucumber",
-      "quantity": 1,
-      "unit": "unit",
-      "original_text": "1 cucumber (20cm/8\" long), peeled and diced into 1cm / 1/2\" cubes",
-      "optional": false,
-      "category": "vegetable",
-      "alternatives": null,
-      "notes": "peeled and diced into 1cm / 1/2\" cubes",
-      "quality": null,
-      "brand_preference": null
-    }
-  ],
+"ingredients": [
+        {
+          "name": "tomato",
+          "quantity": 1,
+          "unit": "kg",
+          "original_text": "1 kg / 2 lb ripe tomatoes (~7), cut into 8 wedges, core removed",
+          "optional": false,
+          "category": "vegetable",
+          "alternatives": null,
+          "notes": "ripe",
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "cucumber",
+          "quantity": 1,
+          "unit": "unit",
+          "original_text": "1 cucumber (20cm/8\" long), peeled and diced into 1cm / 1/2\" cubes",
+          "optional": false,
+          "category": "vegetable",
+          "alternatives": null,
+          "notes": "peeled and diced into 1cm / 1/2\" cubes",
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "red capsicum",
+          "quantity": 1,
+          "unit": "unit",
+          "original_text": "1 red capsicum/bell pepper, cut into 1.5 cm / 1/2″ cubes",
+          "optional": false,
+          "category": "vegetable",
+          "alternatives": [
+            "bell pepper"
+          ],
+          "notes": "cut into 1.5 cm / 1/2″ cubes",
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "garlic",
+          "quantity": 2,
+          "unit": "clove",
+          "original_text": "2 garlic cloves, chopped",
+          "optional": false,
+          "category": "vegetable",
+          "alternatives": null,
+          "notes": "chopped",
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "red onion",
+          "quantity": 0.25,
+          "unit": "cup",
+          "original_text": "1/4 cup red onion, finely diced",
+          "optional": false,
+          "category": "vegetable",
+          "alternatives": null,
+          "notes": "finely diced",
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "extra virgin olive oil",
+          "quantity": 0.25,
+          "unit": "cup",
+          "original_text": "1/4 cup extra virgin olive oil, + extra for serving",
+          "optional": false,
+          "category": "oil",
+          "alternatives": null,
+          "notes": "+ extra for serving",
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "sherry vinegar",
+          "quantity": 1.5,
+          "unit": "tbsp",
+          "original_text": "1 1/2 tbsp sherry vinegar (sub white wine or champagne vinegar)",
+          "optional": false,
+          "category": "condiment",
+          "alternatives": [
+            "white wine vinegar",
+            "champagne vinegar"
+          ],
+          "notes": "substitute options available",
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "salt",
+          "quantity": 0.75,
+          "unit": "tsp",
+          "original_text": "3/4 tsp cooking/kosher salt",
+          "optional": false,
+          "category": "seasoning",
+          "alternatives": null,
+          "notes": "cooking/kosher",
+          "quality": null,
+          "brand_preference": null
+        },
+        {
+          "name": "black pepper",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "original_text": "1/2 tsp black pepper",
+          "optional": false,
+          "category": "seasoning",
+          "alternatives": null,
+          "notes": null,
+          "quality": null,
+          "brand_preference": null
+        }
+      ],
   "stores": [
     "Aldi"
   ]

@@ -115,7 +115,7 @@ class AIService:
 
     async def search_grocery_products_intelligently(self, ingredient: Ingredient, stores: list[StoreConfig] = []) -> dict:
         """Search grocery stores for deals on ingredients using AI."""
-        logger.info(f"[{self.name}] Searching grocery products for ingredients using {self.provider_name} AI provider")
+        logger.info(f"[{self.name}] Searching {ingredient.name} in {stores} by using {self.provider_name} AI provider")
 
         try:
             # Fetch the products search results
@@ -146,7 +146,10 @@ class AIService:
                     continue
 
             # Search for best match products using AI provider
-            fetch_data_processed = [fetch.get("data") for fetch in store_fetch_results.values()]
+            fetch_data_processed = []
+            for fetch in store_fetch_results.values():
+                if fetch.get("data"):
+                    fetch_data_processed.extend(fetch.get("data"))
             ia_response: ChatCompletionResult[Product] = await self.provider.search_best_match_products(ingredient, store, fetch_data_processed)
 
             # Parse AI response into Product model

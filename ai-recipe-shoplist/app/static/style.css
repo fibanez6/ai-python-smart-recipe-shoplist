@@ -155,6 +155,35 @@ body {
     font-size: 0.9rem;
 }
 
+.ingredient-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ingredient-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.product-info {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.product-info small {
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
 .optimization-summary {
     background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
     color: white;
@@ -314,4 +343,34 @@ body {
     body {
         background: white !important;
     }
+}
+
+/* Store Selection Styles */
+.store-checkbox:checked + .form-check-label {
+    font-weight: 600;
+}
+
+.store-checkbox + .form-check-label {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0.5rem;
+    border-radius: 6px;
+}
+
+.store-checkbox + .form-check-label:hover {
+    background-color: #f8f9fa;
+}
+
+.store-checkbox:checked + .form-check-label {
+    background-color: #e3f2fd;
+    border: 1px solid #2196f3;
+}
+
+#selectAllStores {
+    transition: all 0.2s ease;
+}
+
+#selectAllStores:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }

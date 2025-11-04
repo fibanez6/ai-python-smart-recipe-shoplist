@@ -92,7 +92,7 @@ class StorageManager:
                 logger.debug(f"✅ Loaded JSON data from: {file_path}")
                 return data  
         except FileNotFoundError:
-            logger.error(f"[{self.name}] File not found: {file_path}")
+            logger.warning(f"[{self.name}] File not found: {file_path}")
             raise
         except Exception as e:
             logger.error(f"[{self.name}] Error loading Pydantic object from JSON file: {file_path}")
@@ -124,7 +124,7 @@ class StorageManager:
             logger.debug(f"✅ Loaded object with pickle from: {file_path}")
             return obj
         except FileNotFoundError:
-            logger.error(f"[{self.name}] File not found: {file_path}")
+            logger.warning(f"[{self.name}] File not found: {file_path}")
             raise
         except Exception as e:
             logger.error(f"[{self.name}] Error loading pickle object from file: {file_path}")
@@ -154,7 +154,7 @@ class StorageManager:
             logger.debug(f"✅ Loaded object with joblib from: {file_path}")
             return obj
         except FileNotFoundError:
-            logger.error(f"[{self.name}] File not found: {file_path}")
+            logger.warning(f"[{self.name}] File not found: {file_path}")
             raise
         except Exception as e:
             logger.error(f"[{self.name}] Error loading joblib object from file: {file_path}")
@@ -203,7 +203,7 @@ class StorageManager:
             logger.debug(f"✅ Loaded object with custom JSON from: {file_path}")
             return data
         except FileNotFoundError:
-            logger.error(f"[{self.name}] File not found: {file_path}")
+            logger.warning(f"[{self.name}] File not found: {file_path}")
             raise
         except Exception as e:
             logger.error(f"[{self.name}] Error loading custom JSON object from file: {file_path}")
@@ -237,7 +237,7 @@ class StorageManager:
             logger.debug(f"✅ Loaded string data from: {file_path}")
             return data
         except FileNotFoundError:
-            logger.error(f"[{self.name}] File not found: {file_path}")
+            logger.warning(f"[{self.name}] File not found: {file_path}")
             raise
         except Exception as e:
             logger.error(f"[{self.name}] Error loading string data from file: {file_path}")
@@ -283,7 +283,7 @@ class StorageManager:
             with open(file_path, 'r', encoding='utf-8') as f:
                 string_data = f.read()
         except FileNotFoundError:
-            logger.error(f"[{self.name}] File not found: {file_path}")
+            logger.warning(f"[{self.name}] File not found: {file_path}")
             raise
         except Exception as e:
             logger.error(f"[{self.name}] Error loading string data from file: {file_path}")
@@ -343,7 +343,7 @@ class StorageManager:
             return metadata
         
         except FileNotFoundError:
-            logger.error(f"[{self.name}] Metadata file not found: {metadata_path}")
+            logger.warning(f"[{self.name}] Metadata file not found: {metadata_path}")
             return None
         except Exception as e:
             logger.error(f"[{self.name}] Error loading metadata from JSON file: {metadata_path}: {e}")
@@ -414,7 +414,7 @@ class StorageManager:
             logger.info(f"[{self.name}] Saved content to {file_path} and alias '{alias}'")
             return metadata
         except Exception as e:
-            logger.error(f"[{self.name}] Error saving content to disk for {filename}: {e}")
+            logger.warning(f"[{self.name}] Error saving content to disk for {filename}: {e}")
             return None
 
     def load(self, key: str, alias: str = SOURCE_ALIAS, format: str = None, **kwargs) -> Optional[dict]:
@@ -447,9 +447,12 @@ class StorageManager:
             # Determine format from metadata if not provided
             if not format:
                 metadata = self._load_metadata(filename)
-                format = metadata.get("data_format", "string")
-            else:
-                format = format.lower()
+                if metadata:
+                    format = metadata.get("data_format", "string")
+                else:
+                    format = "string"
+            
+            format = format.lower()
 
             # Dispatch to the appropriate load format
             if format == "json" or format == "pydantic" or format == "dict":

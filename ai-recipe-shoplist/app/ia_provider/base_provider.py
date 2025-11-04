@@ -18,7 +18,11 @@ from ..utils.ai_helpers import (
 # Get module logger
 logger = get_logger(__name__)
 
-from ..config.pydantic_config import AI_SERVICE_SETTINGS, CACHE_SETTINGS, STORAGE_SETTINGS
+from ..config.pydantic_config import (
+    AI_SERVICE_SETTINGS,
+    CACHE_SETTINGS,
+    STORAGE_SETTINGS,
+)
 from ..services.tokenizer_service import TokenizerService  # Import TokenizerService
 from ..utils.retry_utils import (
     AIRetryConfig,
@@ -27,6 +31,7 @@ from ..utils.retry_utils import (
     ServerError,
     with_ai_retry,
 )
+
 
 class BaseAIProvider(ABC):
     """Complete a chat conversation using AI Models with tenacity retry logic."""
@@ -182,7 +187,7 @@ class BaseAIProvider(ABC):
     async def extract_recipe_data(self, html_content: str) -> ChatCompletionResult[Recipe]:
         """Extract structured recipe data from HTML using AI."""
 
-        logger.info(f"[{self.name}] Extracting recipe data")
+        logger.info(f"[{self.name}] Extracting recipe data using AI")
 
         # Set system message
         system = """You are an AI assistant specialized in extracting structured recipe data from web pages.
@@ -225,6 +230,10 @@ HTML content:
         logger.info(f"[{self.name}] Searching grocery products for {ingredient.name} in {store.name}")
 
         store_content = json.dumps(fetch_content, separators=(",", ":"))
+
+        if not store_content or store_content == "[]":
+            logger.warning(f"[{self.name}] No store content available to search for products.")
+            raise ValueError("No store content available to search for products.")
 
         # Set system message
         system = """You are an AI assistant specialized in searching and comparing grocery products online.

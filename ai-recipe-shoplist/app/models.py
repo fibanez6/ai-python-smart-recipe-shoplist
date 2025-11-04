@@ -1,10 +1,11 @@
 """Data models for the recipe shoplist application."""
 
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Generic, Optional, TypeVar
 
 from pydantic import BaseModel, Field
-from typing import Generic, TypeVar, Optional
+
+from app.config.store_config import StoreConfig
 
 
 class QuantityUnit(str, Enum):
@@ -114,19 +115,36 @@ class Product(BaseModel):
             store="Example Store"
         )
 
-    def display(self) -> dict:
-        """Return a dict with only selected fields."""
-        return {
-            "name": self.name,
-            "store": self.store,
-            "price": self.price,
-            "url": self.url,
-            "image_url": self.image_url,
-            "brand": self.brand,
-            "unit_price": self.unit_price,
-            "quantity": self.quantity,
-            "reasoning": self.ia_reasoning
-        }
+    # def display(self) -> dict:
+    #     """Return a dict with only selected fields."""
+    #     return {
+    #         "name": self.name,
+    #         "store": self.store,
+    #         "price": self.price,
+    #         "url": self.url,
+    #         "image_url": self.image_url,
+    #         "brand": self.brand,
+    #         "unit_price": self.unit_price,
+    #         "quantity": self.quantity,
+    #         "reasoning": self.ia_reasoning
+    #     }
+
+class Store(BaseModel):
+    """Represents a grocery store."""
+    name: str = Field(..., description="Store name")
+    display_name: Optional[str] = Field(None, description="Store display name")
+    region: Optional[str] = Field(None, description="Store region/country")
+    base_url: Optional[str] = Field(None, description="Store base URL")
+
+    @staticmethod
+    def mapConfig(config: StoreConfig) -> "Store":
+        """Map to store config."""
+        return Store (
+            name = config.name,
+            display_name = config.display_name,
+            region = config.region,
+            base_url = config.base_url
+        )
 
 class ShopphingCart(BaseModel):
     """Represents a shopping cart with products."""
@@ -208,3 +226,11 @@ class ChatCompletionResult(BaseModel, Generic[T]):
     content: Optional[T] = Field(..., description="Content returned by the AI service")
     refusal: Optional[Any] = Field(None, description="Refusal information if applicable")
     metadata: Optional[dict] = Field(None, description="Additional statistics or metadata")
+
+class SearchStoresResponse(BaseModel):
+    """Response for searching stores for products."""
+    success: bool = Field(..., description="Whether the search was successful")
+    stores: list[Store] = Field(default_factory=list, description="Stores that were searched")
+    products: list[Product] = Field(default_factory=list, description="Products found")
+    ia_stats: Optional[list[dict]] = Field(default_factory=list, description="Intelligent Assistant stats")
+    timestamp: str = Field(..., description="Response timestamp")

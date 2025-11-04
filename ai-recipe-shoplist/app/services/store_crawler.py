@@ -2,8 +2,9 @@
 
 import asyncio
 import random
-from typing import List, Dict
-from ..models import Product, StoreSearchResult, Ingredient
+from typing import Dict, List
+
+from ..models import Ingredient, Product, StoreSearchResult
 
 
 class SimpleStoreCrawler:
@@ -52,20 +53,29 @@ class SimpleStoreCrawler:
         elif store == "iga":
             base_price *= 1.15  # IGA typically more expensive
         
+        # Generate mock image URLs (using food-themed placeholder images)
+        ingredient_slug = ingredient.name.lower().replace(' ', '-').replace(',', '')
+        hash_seed1 = hash(ingredient.name + store + 'regular') % 1000
+        hash_seed2 = hash(ingredient.name + store + 'premium') % 1000
+        
         products = [
             Product(
-                title=f"{ingredient.name.title()} - {store.title()} Brand",
+                name=f"{ingredient.name.title()} - {store.title()} Brand",
+                ingredient=ingredient.name,
                 price=round(base_price, 2),
                 store=store,
                 url=f"https://{store}.com.au/product/{ingredient.name.replace(' ', '-')}",
+                image_url=f"https://source.unsplash.com/200x200/?{ingredient_slug},food&sig={hash_seed1}",
                 brand=f"{store.title()}",
                 size="500g"
             ),
             Product(
-                title=f"Premium {ingredient.name.title()}",
+                name=f"Premium {ingredient.name.title()}",
+                ingredient=ingredient.name,
                 price=round(base_price * 1.3, 2),
                 store=store,
                 url=f"https://{store}.com.au/product/premium-{ingredient.name.replace(' ', '-')}",
+                image_url=f"https://source.unsplash.com/200x200/?{ingredient_slug},organic,premium&sig={hash_seed2}",
                 brand="Premium Brand",
                 size="400g"
             )

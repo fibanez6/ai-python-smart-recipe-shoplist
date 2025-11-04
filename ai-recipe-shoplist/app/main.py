@@ -1,9 +1,12 @@
 """Main FastAPI application for the AI Recipe Shoplist Crawler."""
 
+import asyncio
 import json
 import logging
+import os
 import pprint
 import traceback
+from contextlib import asynccontextmanager
 from datetime import datetime
 
 import uvicorn
@@ -11,14 +14,18 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
+
+from app.config.store_config import StoreConfig
 
 # Load environment variables
 load_dotenv()
 
 # Setup logging first
-from .config.logging_config import setup_logging
-from .config.pydantic_config import (
+from app.config.logging_config import setup_logging
+from app.config.pydantic_config import (
     AI_SERVICE_SETTINGS,
     LOG_SETTINGS,
     SERVER_SETTINGS,
@@ -31,18 +38,33 @@ logger = setup_logging(
     log_file=LOG_SETTINGS.file_path
 )
 
-import asyncio
-from contextlib import asynccontextmanager
-
-from .models import APIResponse, Ingredient, QuantityUnit, Recipe, SearchStoresRequest
+from app.models import (
+    APIResponse,
+    Ingredient,
+    Product,
+    QuantityUnit,
+    Recipe,
+    SearchStoresRequest,
+    SearchStoresResponse,
+    Store,
+)
 
 # Import services
-from .services.ai_service import get_ai_service
-from .services.bill_generator import bill_generator
-from .services.grocery_service import grocery_service
-from .services.price_optimizer import price_optimizer
-from .services.web_fetcher import get_web_fetcher
+from app.services.ai_service import get_ai_service
+from app.services.grocery_service import grocery_service
+from app.services.store_crawler import SimpleStoreCrawler
+from app.services.web_fetcher import get_web_fetcher
 
+# Initialize global variables
+recipe_cache = {}
+store_crawler = SimpleStoreCrawler()
+
+# Try to import Jinja2Templates, make it optional
+try:
+    templates_path = os.path.join(os.path.dirname(__file__), "templates")
+    templates = Jinja2Templates(directory=templates_path)
+except ImportError:
+    templates = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -80,6 +102,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files
+static_path = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 # Startup logic moved to lifespan context manager above.
 
@@ -202,16 +228,16 @@ async def process_recipe_full_ai(recipe_url: str = Form(...)):
         raise HTTPException(status_code=500, detail=detail)
 
 @app.post("/api/search-stores")
-async def search_stores(request: SearchStoresRequest):
+async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
     """Search grocery stores for ingredients."""
     try:
-        logger.info(f"[API] Searching stores for {len(request.ingredients)} ingredients")
+        logger.info(f"[API] Searching stores for {len(request.ingredients)} ingredients in stores: {request.stores}")
 
         # Search all stores (or specified stores)
         stores_names = [store.lower() for store in request.stores]
         ingredients: list[Ingredient] = request.ingredients
 
-        stores = grocery_service.get_stores(stores_names)
+        stores: list[StoreConfig] = grocery_service.get_stores(stores_names)
 
         # Use AI to optimize product matching
         ai_service = get_ai_service()
@@ -228,7 +254,7 @@ async def search_stores(request: SearchStoresRequest):
                 logger.debug((f"[API] AI search for ingredient '{ingredient.name}' - output:", response))
 
             # Process the AI response for this ingredient
-            product = response.get("product")
+            product: Product = response.get("product")
             if product:
                 product_results.append(product)
             
@@ -239,14 +265,17 @@ async def search_stores(request: SearchStoresRequest):
             # Be polite to avoid rate limits
             await asyncio.sleep(0.5)
 
-        logger.info(f"[API] Completed store search for {len(ingredients)} ingredients")        
-        return APIResponse(
+        logger.info(f"[API] Completed store search for {len(ingredients)} ingredients")
+
+        # if logger.isEnabledFor(logging.DEBUG):
+        #     logger.debug(stores)
+        #     logger.debug(product_results)
+
+        return SearchStoresResponse(
             success=True,
-            data={
-                "stores": [store.display_name for store in stores],
-                "products": [product.display() for product in product_results],
-                "ia_stats": ia_stats
-            },
+            stores=[Store.mapConfig(store) for store in stores],
+            products=product_results,
+            ia_stats=ia_stats,
             timestamp=datetime.now().isoformat()
         )
         
@@ -473,7 +502,16 @@ async def clear_content_files():
 async def get_available_stores():
     """Get list of available grocery stores with detailed information."""
     stores = store_crawler.get_available_stores()
-    store_info = store_crawler.get_all_stores_info()
+    
+    # Create basic store info since get_all_stores_info() doesn't exist
+    store_info = {
+        store: {
+            "name": store.title(),
+            "display_name": store.title(),
+            "available": True,
+            "type": "grocery"
+        } for store in stores
+    }
     
     return APIResponse(
         success=True,
@@ -481,7 +519,7 @@ async def get_available_stores():
             "stores": stores,
             "store_details": store_info,
             "count": len(stores),
-            "region": store_crawler.region.value
+            "region": "AU"  # Default region since no region property exists
         },
         timestamp=datetime.now().isoformat()
     )
@@ -489,18 +527,28 @@ async def get_available_stores():
 @app.get("/api/stores/{store_id}")
 async def get_store_details(store_id: str):
     """Get detailed information for a specific store."""
-    store_info = store_crawler.get_store_info(store_id)
+    available_stores = store_crawler.get_available_stores()
     
-    if not store_info:
+    if store_id not in available_stores:
         raise HTTPException(status_code=404, detail=f"Store '{store_id}' not found")
+    
+    # Create basic store info since get_store_info() doesn't exist
+    store_info = {
+        "id": store_id,
+        "name": store_id.title(),
+        "display_name": store_id.title(),
+        "available": True,
+        "type": "grocery",
+        "region": "AU"
+    }
     
     return APIResponse(
         success=True,
         data={
             "store": store_info,
             "sample_urls": {
-                "search_tomato": store_crawler.get_store_config(store_id).get_search_url("tomato"),
-                "product_example": store_crawler.get_store_config(store_id).get_product_url("example-product-123")
+                "search_tomato": f"https://{store_id}.com.au/search?q=tomato",
+                "product_example": f"https://{store_id}.com.au/product/example-product-123"
             }
         },
         timestamp=datetime.now().isoformat()
