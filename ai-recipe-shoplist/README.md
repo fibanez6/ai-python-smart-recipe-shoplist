@@ -44,8 +44,11 @@ An intelligent Python 3.11+ application that crawls recipe websites, extracts in
 ai-recipe-shoplist/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py                     # FastAPI application
+│   ├── main.py                     # FastAPI application setup & routing
 │   ├── models.py                   # Pydantic data models
+│   ├── api/
+│   │   ├── __init__.py            # API package initialization
+│   │   └── v1.py                  # API v1 endpoints (versioned API)
 │   ├── config/
 │   │   ├── pydantic_config.py      # Type-safe configuration management
 │   │   ├── logging_config.py       # Logging configuration
@@ -63,8 +66,8 @@ ai-recipe-shoplist/
 │   │   ├── ollama_provider.py      # Ollama implementation
 │   │   ├── github_provider.py      # GitHub Models implementation
 │   │   └── stub_provider.py        # Stub implementation for testing
-│   ├── web_extractor/
-│   │   └── html_extractor.py       # HTML content extraction
+│   ├── scrapers/
+│   │   └── html_content_processor.py  # HTML content extraction & processing
 │   ├── templates/
 │   │   └── index.html             # Web interface template
 │   ├── static/
@@ -136,8 +139,8 @@ ai-recipe-shoplist/
 
 6. **Open your browser:**
    - **Web Interface:** http://localhost:8000
-   - **API Documentation:** http://localhost:8000/api/docs
-   - **API Re-Documentation:** http://localhost:8000/api/redoc
+   - **API Documentation:** http://localhost:8000/api/v1/docs
+   - **API Re-Documentation:** http://localhost:8000/api/v1/redoc
 
 ### Using the Startup Script
 
@@ -229,25 +232,27 @@ chmod +x start.sh
 
 ### API Endpoints
 
-The application provides a RESTful API with the following main endpoints:
+The application provides a RESTful API with **versioned endpoints** for better maintainability and backward compatibility:
 
-#### Core Functionality
+#### API v1 Endpoints (`/api/v1/`)
 - `GET /` - Web interface
 - `GET /health` - Health check endpoint
-- `POST /api/process-recipe` - Extract recipe ingredients from URL using AI
-- `POST /api/process-recipe-ai` - Alternative AI-powered recipe processing
-- `POST /api/search-stores` - Search grocery stores for specific ingredients
+- `POST /api/v1/process-recipe-ai` - AI-powered recipe processing with shopping plan generation
+- `POST /api/v1/search-stores` - Search grocery stores for specific ingredients
+- `POST /api/v1/fetcher` - Get web content fetching details
+- `GET /api/v1/fetcher-stats` - Get web fetcher cache statistics
+- `POST /api/v1/clear-fetcher-cache` - Clear the web fetcher cache
+- `POST /api/v1/clear-content-files` - Clear saved content files
+- `GET /api/v1/demo` - Load demo recipe data
 
-#### Utility Endpoints
-- `POST /api/fetcher` - Get web content fetching details
-- `GET /api/fetcher-stats` - Get web fetcher cache statistics
-- `POST /api/clear-fetcher-cache` - Clear the web fetcher cache
-- `POST /api/clear-content-files` - Clear saved content files
-- `GET /api/stores` - List available grocery stores
-- `GET /api/stores/{store_id}` - Get details for a specific store
-- `GET /api/demo` - Load demo recipe data
-- `GET /api/docs` - Interactive API documentation
-- `GET /api/redoc` - Alternative API documentation
+#### API Documentation
+- `GET /api/v1/docs` - Interactive API documentation (Swagger UI)
+- `GET /api/v1/redoc` - Alternative API documentation (ReDoc)
+
+#### Legacy Support
+- Legacy `/api/*` endpoints automatically redirect to `/api/v1/*` for backward compatibility
+- `GET /api/docs` → Redirects to `/api/v1/docs`
+- `GET /api/redoc` → Redirects to `/api/v1/redoc`
 
 ### Current Functionality
 
@@ -260,9 +265,9 @@ The application currently provides:
 
 ### Demo Mode
 
-Try the demo with a sample recipe:
+Try the demo with a sample recipe using the v1 API:
 ```bash
-curl -X POST "http://localhost:8000/api/demo"
+curl -X GET "http://localhost:8000/api/v1/demo"
 ```
 
 Or use the web interface for an interactive experience.
@@ -415,11 +420,13 @@ mypy app/
 
 ### Adding New Features
 
-1. **New Recipe Sites**: Extend web fetching and parsing in `web_data_service.py` and `html_extractor.py`
-2. **New AI Providers**: Implement `BaseAIProvider` in `ia_provider/` directory
-3. **New Configuration**: Add settings to `pydantic_config.py` with proper validation
-4. **New Services**: Create new services in `services/` directory with proper logging
-5. **New Stores**: Add store configurations in `config/store_config.py`
+1. **New API Endpoints**: Add to `app/api/v1.py` for current API or create `app/api/v2.py` for new API version
+2. **New Recipe Sites**: Extend web fetching and parsing in `web_data_service.py` and `html_content_processor.py`
+3. **New AI Providers**: Implement `BaseAIProvider` in `ia_provider/` directory
+4. **New Configuration**: Add settings to `pydantic_config.py` with proper validation
+5. **New Services**: Create new services in `services/` directory with proper logging
+6. **New Stores**: Add store configurations in `config/store_config.py`
+7. **API Versioning**: For breaking changes, create new API version in `app/api/v2.py`
 
 ## 📊 Current Implementation
 
@@ -445,27 +452,42 @@ The system currently implements:
 ### Example Workflow
 
 ```python
-# 1. Process Recipe URL
-POST /api/process-recipe
+# 1. Process Recipe URL with AI (v1 API)
+POST /api/v1/process-recipe-ai
 {
-  "url": "https://allrecipes.com/recipe/123/chicken-stir-fry"
+  "recipe_url": "https://allrecipes.com/recipe/123/chicken-stir-fry"
 }
 
-# 2. Search Stores for Ingredients
-POST /api/search-stores
+# Response: Complete recipe with ingredients and shopping plan
+{
+  "success": true,
+  "data": {
+    "url": "https://allrecipes.com/recipe/123/chicken-stir-fry",
+    "recipe": {
+      "title": "Chicken Stir Fry",
+      "ingredients": [...],
+      "instructions": [...]
+    }
+  }
+}
+
+# 2. Search Stores for Ingredients (v1 API)
+POST /api/v1/search-stores
 {
   "ingredients": [
-    {"name": "chicken breast", "quantity": 2, "unit": "piece"},
-    {"name": "mixed vegetables", "quantity": 2, "unit": "cup"}
+    {"name": "chicken breast", "quantity": 2, "unit": "PIECE"},
+    {"name": "mixed vegetables", "quantity": 2, "unit": "CUP"}
   ],
   "stores": ["coles", "woolworths", "aldi"]
 }
 
 # 3. View Results
 {
+  "success": true,
+  "stores": [...],
   "products": [...],
-  "stores": ["Coles", "Woolworths", "ALDI"],
-  "ai_info": {...}
+  "ia_stats": [...],
+  "timestamp": "2025-11-07T10:30:00"
 }
 ```
 
@@ -576,9 +598,9 @@ pip install -r requirements.txt --force-reinstall
 
 ### Getting Help
 
-1. Check the [API documentation](http://localhost:8000/api/docs) when running
+1. Check the [API documentation](http://localhost:8000/api/v1/docs) when running
 2. Review application logs for detailed error messages  
-3. Try the demo mode to verify setup: `curl -X POST "http://localhost:8000/api/demo"`
+3. Try the demo mode to verify setup: `curl -X GET "http://localhost:8000/api/v1/demo"`
 
 ## 🔮 Roadmap
 
@@ -596,6 +618,15 @@ pip install -r requirements.txt --force-reinstall
 - [ ] Store location and proximity optimization
 
 ## 🆕 Recent Updates
+
+### v2.2 - Modular Architecture & API Versioning
+- **Modular API Structure**: Separated API endpoints into versioned modules (`app/api/v1.py`)
+- **API Versioning**: Implemented proper API versioning with `/api/v1/` endpoints
+- **Backward Compatibility**: Legacy `/api/` endpoints automatically redirect to `/api/v1/`
+- **Clean Architecture**: Main application (`main.py`) now focused on setup and routing
+- **Better Code Organization**: API logic separated from application configuration
+- **Improved Maintainability**: Easier to add future API versions (v2, v3, etc.)
+- **Updated Documentation**: API docs now available at `/api/v1/docs` and `/api/v1/redoc`
 
 ### v2.1 - Enhanced Grocery Store Integration
 - **Multi-Store Support**: Added support for Coles, Woolworths, ALDI, and IGA with configurable search patterns
