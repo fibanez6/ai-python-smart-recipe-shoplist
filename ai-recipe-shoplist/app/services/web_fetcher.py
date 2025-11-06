@@ -16,10 +16,9 @@ class WebFetcher:
     def __init__(self):
         self.name = "WebFetcher"
         self.timeout = FETCHER_SETTINGS.timeout
-        self.max_content_size = FETCHER_SETTINGS.max_size
         self.user_agent = FETCHER_SETTINGS.user_agent
 
-        logger.info(f"[{self.name}] initialized - Timeout: {self.timeout}s, Max size: {self.max_content_size} bytes")
+        logger.info(f"[{self.name}] initialized - Timeout: {self.timeout}s")
     
     async def fetch_url(self, url: str) -> dict[str, Any]:
         """

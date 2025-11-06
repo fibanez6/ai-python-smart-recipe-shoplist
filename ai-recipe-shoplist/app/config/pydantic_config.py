@@ -15,7 +15,6 @@ class WebFetcherSettings(BaseSettings):
     """Web fetcher configuration settings."""
     
     timeout: int = Field(default=30, description="Request timeout in seconds")
-    max_size: int = Field(default=10485760, description="Maximum content size in bytes (10MB)")
     user_agent: str = Field(
         default="Mozilla/5.0 (compatible; AI-Recipe-Crawler/1.0; +https://github.com/your-repo)",
         description="User agent string for requests"

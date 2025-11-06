@@ -51,10 +51,10 @@ def _get_product_tile_selector(selectors: dict[str, str]) -> str | None:
     logger.debug("Getting product tile selector...")
     return selectors.get("product_tile", None)
 
-def _extract_by_product_tile_selector(html_content: str, product_title: str, selectors: dict[str, str]) -> list[dict]:
+def _process_by_product_tile_selector(html_content: str, product_title: str, selectors: dict[str, str]) -> list[dict]:
     """Get the selector for a specific product tile."""
     
-    log_function_call("Html_helper._extract_by_product_tile_selector", {
+    log_function_call("Html_helper._process_by_product_tile_selector", {
         "html_content": html_content[:50],
         "product_title": product_title,
         "html_selectors": selectors
@@ -99,10 +99,10 @@ def _extract_by_product_tile_selector(html_content: str, product_title: str, sel
         logger.warning(f"[WebFetcher] Error cleaning HTML with selectors: {e}, returning original content")
         return html_content
 
-def _extract_by_selectors(html_content: str, selectors: dict[str, str]) -> list[dict]:
+def _process_by_selector(html_content: str, selectors: dict[str, str]) -> list[dict]:
     """Extract elements from HTML content using the given selectors."""
 
-    log_function_call("Html_helper._extract_by_selectors", {
+    log_function_call("Html_helper._process_by_selector", {
         "html_content": html_content[:50],
         "html_selectors": selectors
     })
@@ -142,9 +142,9 @@ def _extract_by_selectors(html_content: str, selectors: dict[str, str]) -> list[
         logger.warning(f"[WebFetcher] Error extracting HTML with selectors: {e}, returning original content")
         return html_content
 
-def clean_html(html_content: str) -> dict:
+def process_html_content(html_content: str) -> dict:
     """
-    Clean HTML content for AI processing by removing unnecessary elements.
+    Process HTML content for AI analysis by removing unnecessary elements.
 
     Args:
         html_content: Raw HTML content.
@@ -169,9 +169,9 @@ def clean_html(html_content: str) -> dict:
         logger.warning(f"[WebFetcher] Error cleaning HTML: {e}, returning original content")
         return html_content
     
-def clean_html_with_selectors(html_content: str, selectors: dict[str, str]) -> dict:
+def process_html_content_with_selectors(html_content: str, selectors: dict[str, str]) -> dict:
     """
-    Clean and extract HTML content using specific CSS selectors.
+    Process and extract HTML content using specific CSS selectors.
 
     Args:
         html_content: Raw HTML content.
@@ -181,7 +181,7 @@ def clean_html_with_selectors(html_content: str, selectors: dict[str, str]) -> d
         List of dictionaries with extracted content.
     """
     log_function_call(
-        "Html_helper.clean_html_with_selectors",
+        "Html_helper.process_html_content_with_selectors",
         {
             "html_content": html_content[:50],
             "html_selectors": selectors,
@@ -195,9 +195,9 @@ def clean_html_with_selectors(html_content: str, selectors: dict[str, str]) -> d
         }
         return {
             "data_processed_format": "dict",
-            "data": _extract_by_product_tile_selector(html_content, product_tile_selector, filtered_selectors)
+            "data": _process_by_product_tile_selector(html_content, product_tile_selector, filtered_selectors)
         }
     return {
         "data_processed_format": "dict", 
-        "data": _extract_by_selectors(html_content, selectors)
+        "data": _process_by_selector(html_content, selectors)
         }

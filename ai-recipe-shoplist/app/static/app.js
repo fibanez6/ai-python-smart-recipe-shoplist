@@ -2,7 +2,7 @@
 
 class RecipeShoplistApp {
   constructor() {
-    this.apiBase = "/api";
+    this.apiBase = "/api/v1";
     this.currentRecipe = null;
     this.currentOptimization = null;
     this.currentProducts = [];
@@ -330,8 +330,8 @@ class RecipeShoplistApp {
                 <h6><i class="fas fa-info-circle me-2"></i>Next Steps</h6>
                 <p class="mb-2">Recipe processed successfully! You can now:</p>
                 <ul class="mb-0">
-                    <li>Use the <a href="/api/search-stores" target="_blank">Store Search API</a> to find products</li>
-                    <li>Check the <a href="/api/docs" target="_blank">API documentation</a> for more endpoints</li>
+                    <li>Use the <a href="/api/v1/search-stores" target="_blank">Store Search API</a> to find products</li>
+                    <li>Check the <a href="/api/v1/docs" target="_blank">API documentation</a> for more endpoints</li>
                 </ul>
             </div>
         `;

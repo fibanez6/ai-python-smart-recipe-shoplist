@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 from app.config.logging_config import setup_logging
 from app.manager.storage_manager import get_storage_manager
-from app.web_extractor.html_extractor import clean_html
+from app.scrapers.html_content_processor import process_html_content
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
@@ -20,7 +20,7 @@ file_path = Path("/tmp/web_cache/content/e0a8c55dc46df2946b977d7b124a0c8b")
 output_path = Path("/tmp/web_cache/content/output_cleaned.html")
 
 def extractor_html(data):
-    cleaned_html = clean_html(data)
+    cleaned_html = process_html_content(data)
     rich.print("------------------- CLEANED HTML ------------------")
     rich.print(cleaned_html.get("data", "")[:500])
 

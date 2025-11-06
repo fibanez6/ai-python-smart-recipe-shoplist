@@ -1,6 +1,7 @@
 from functools import partial
 import logging
 
+from app.scrapers.html_content_processor import process_html_content, process_html_content_with_selectors
 from app.services.web_fetcher import get_web_fetcher
 
 from ..config.logging_config import get_logger, log_function_call
@@ -56,11 +57,11 @@ class WebScraper:
         web_data["data_format"] = data_format
         return web_data
 
-    async def _process(self, url: str, raw_data: dict, extractor) -> dict:
-        """Process raw data using the provided extractor function."""
+    async def _process(self, url: str, raw_data: dict, html_processor) -> dict:
+        """Process raw data using the provided html_processor function."""
         # Process the raw data
         logger.info(f"{self.name}: Extracting relevant info for {url}")
-        processed_data = extractor(raw_data)
+        processed_data = html_processor(raw_data)
 
         if "data" not in processed_data:
             logger.warning(f"{self.name}: Failed to extract data")
@@ -74,9 +75,18 @@ class WebScraper:
         processed_data["data_processed"] = True
         return processed_data
 
-    async def fetch_and_process(self, url: str, extractor, data_format: str ="html") -> dict:
+    def _get_html_processor(self, html_selectors: dict[str, str] = None, data_format: str = "html") -> callable:
+        """Get the appropriate HTML processor function."""
+        if html_selectors and data_format == "html":
+            return partial(process_html_content_with_selectors, selectors=html_selectors)
+        return process_html_content
+
+    async def fetch_and_process(self, url: str, html_selectors: dict[str, str] = None, data_format: str ="html") -> dict:
         """Fetch and process web data with caching."""
-        log_function_call("WebDataService.fetch_and_process", {"url": url})
+        log_function_call("WebDataService.fetch_and_process", {
+            "url": url,
+            "data_format": data_format
+        })
         try:
             # Try loading processed data from cache
             cached_data = self.cache_manager.load(key=url, alias="processed")
@@ -90,19 +100,20 @@ class WebScraper:
                 logger.info(f"{self.name}: Loaded processed data from disk for {url}")
                 return disk_data
 
-            fetch_data = await self._fetch(url, data_format)
-            if "data" not in fetch_data:
+            fetched_data = await self._fetch(url, data_format)
+            if "data" not in fetched_data:
                 logger.warning(f"{self.name}: No raw data fetched for {url}")
                 return None
 
             # Process the fetched data
-            raw_data = fetch_data.get("data")
-            processed_data = await self._process(url, raw_data, extractor)
+            html_processor = self._get_html_processor(html_selectors, data_format=data_format)
+            raw_data = fetched_data.get("data")
+            processed_data = await self._process(url, raw_data, html_processor)
 
             # Merge processed data into fetch data
-            fetch_data.update(processed_data)
+            fetched_data.update(processed_data)
 
-            return fetch_data
+            return fetched_data
         except Exception as e:
             logger.error(f"[{self.name}] Error fetching or processing data for {url}: {e}")
             raise

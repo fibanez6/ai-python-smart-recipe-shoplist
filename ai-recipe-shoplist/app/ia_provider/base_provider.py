@@ -279,53 +279,5 @@ Store content:
             logger.error(f"[{self.name}] Error in search_grocery_products: {e}")
             raise Exception("Failed to extract product data using AI provider.") from e
 
-    # async def match_products(self, ingredient: str, products: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    #     """Match and rank products for an ingredient using AI."""
-
-    #     logger.info(f"[{self.name}] Matching products for ingredient")
-
-    #     if not products:
-    #         return []
-        
-    #     # Set system message
-    #     system = PRODUCT_MATCHING_SYSTEM
-        
-    #     # Use centralized prompt template
-    #     prompt = format_ai_prompt(
-    #         PRODUCT_MATCHING_PROMPT,
-    #         ingredient=ingredient,
-    #         products_json=json.dumps(products, indent=2)
-    #     )
-
-    #     logger.debug(f"[{self.name}] System message: {system}")
-    #     logger.debug(f"[{self.name}] User message: {prompt}")
-
-    #     chat_params = {
-    #         "messages": [
-    #             {"role": "system", "content": system},
-    #             {"role": "user", "content": prompt}
-    #         ]
-    #     }
-        
-    #     try:
-    #         response = await self.complete_chat(chat_params)
-    #         response = response.content
-
-    #         # Use centralized JSON parsing
-    #         ranked_products = safe_json_parse(response, fallback=products)
-    #         return ranked_products if isinstance(ranked_products, list) else products
-    #     except Exception as e:
-    #         logger.error(f"[{self.name}] Error ranking products: {e}")
-    #         # Only log response if it was defined
-    #         try:
-    #             logger.debug(f"[{self.name}] Raw response that failed to parse: {response[:500]}...")
-    #         except NameError:
-    #             logger.debug(f"[{self.name}] No response received due to earlier error")
-    #         # Fallback: return original products with default scores
-    #         for i, product in enumerate(products):
-    #             product["match_score"] = 100 - (i * 10)  # Simple scoring
-    #         return products
-        
-
     async def close(self):
         await self._client.aclose()

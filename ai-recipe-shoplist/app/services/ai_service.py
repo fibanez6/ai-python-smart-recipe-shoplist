@@ -19,12 +19,15 @@ from ..ia_provider import (
     StubProvider,
 )
 from ..models import ChatCompletionResult, Ingredient, Product, Recipe, ShopphingCart
+from ..scrapers.html_content_processor import (
+    process_html_content,
+    process_html_content_with_selectors,
+)
 from ..utils.ai_helpers import (
     RECIPE_SHOPPING_ASSISTANT_PROMPT,
     RECIPE_SHOPPING_ASSISTANT_SYSTEM,
     format_ai_prompt,
 )
-from ..scrapers.web_content_processor import clean_html, clean_html_with_selectors
 
 # Get module logger
 logger = get_logger(__name__)
@@ -73,7 +76,7 @@ class AIService:
         
         try:
             # Get html extractor
-            html_extractor = clean_html
+            html_extractor = process_html_content
 
             # Use web scraper to fetch and process content
             fetch_result = await self.web_scraper.fetch_and_process(url, html_extractor, data_format="html")
@@ -127,15 +130,9 @@ class AIService:
                     # Fetch search page content
                     logger.info(f"[{self.name}] Searching products in store {store.name} from ingredient {ingredient.name}")
 
-                    # Get html extractor
-                    if store.search_type == "html" and store.html_selectors:
-                        data_extractor = partial(clean_html_with_selectors, selectors=store.html_selectors)
-                    else:
-                        data_extractor = clean_html
-
                     # Use web scraper to fetch and process content
                     url = store.get_search_url(ingredient.name)
-                    fetch_result = await self.web_scraper.fetch_and_process(url, data_extractor, data_format=store.search_type)
+                    fetch_result = await self.web_scraper.fetch_and_process(url, store.html_selectors, store.search_type)
 
                     if "data" not in fetch_result:
                         raise ValueError("No data found in fetched result for ingredient extraction")
