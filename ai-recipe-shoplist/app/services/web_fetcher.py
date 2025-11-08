@@ -37,6 +37,7 @@ class WebFetcher:
             - data (str): HTML content.
         """
         log_function_call("WebFetcher.fetch_url", {"url": url})
+        
         start_time = time.time()
 
         try:

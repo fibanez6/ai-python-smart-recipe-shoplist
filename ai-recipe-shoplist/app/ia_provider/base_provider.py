@@ -1,14 +1,12 @@
 """Base AI provider abstract class and common utilities."""
 
-import json
 from abc import ABC, abstractmethod
 
 from app.manager.cache_manager import CacheManager
 from app.manager.storage_manager import StorageManager
 
 from ..config.logging_config import get_logger
-from ..config.store_config import StoreConfig
-from ..models import ChatCompletionResult, Ingredient, Product, Recipe
+from ..models import ChatCompletionResult
 from ..utils.ai_helpers import (
     get_ai_token_stats,
     log_ai_chat_query,
@@ -23,7 +21,6 @@ from ..config.pydantic_config import (
     CACHE_SETTINGS,
     STORAGE_SETTINGS,
 )
-from ..services.tokenizer_service import TokenizerService  # Import TokenizerService
 from ..utils.retry_utils import (
     AIRetryConfig,
     NetworkError,
@@ -37,7 +34,6 @@ class BaseAIProvider(ABC):
     """Complete a chat conversation using AI Models with tenacity retry logic."""
 
     def __init__(self):
-        self.tokenizer = TokenizerService()
         self.cache_manager = CacheManager(ttl=CACHE_SETTINGS.ai_ttl)  # Separate TTL for AI responses
         self.content_storage = StorageManager(STORAGE_SETTINGS.base_path / "ai_cache") # Separate storage path for AI responses
 
@@ -70,11 +66,6 @@ class BaseAIProvider(ABC):
     def retry_config(self) -> AIRetryConfig:
         """Each child must define a retry configuration"""
         pass
-
-    def truncate_to_max_tokens(self, text: str) -> str:
-        """Truncate text to fit within the provider's max token limit."""
-
-        return self.tokenizer.truncate_to_token_limit(text, self.max_tokens)
 
     def _load_from_cache_or_storage(self, key: str, model_class: type = None) -> ChatCompletionResult | None:
         """Load AI response from cache or storage."""
@@ -184,100 +175,100 @@ class BaseAIProvider(ABC):
             logger.error(f"[{self.name}] OpenAI API error: {e}")
             raise
             
-    async def extract_recipe_data(self, html_content: str) -> ChatCompletionResult[Recipe]:
-        """Extract structured recipe data from HTML using AI."""
+#     async def extract_recipe_data(self, html_content: str) -> ChatCompletionResult[Recipe]:
+#         """Extract structured recipe data from HTML using AI."""
 
-        logger.info(f"[{self.name}] Extracting recipe data using AI")
+#         logger.info(f"[{self.name}] Extracting recipe data using AI")
 
-        # Set system message
-        system = """You are an AI assistant specialized in extracting structured recipe data from web pages.
-Your task is to analyze the provided HTML content and return a valid JSON object containing the recipe's title, ingredients (with normalized names and quantities), and instructions.
+#         # Set system message
+#         system = """You are an AI assistant specialized in extracting structured recipe data from web pages.
+# Your task is to analyze the provided HTML content and return a valid JSON object containing the recipe's title, ingredients (with normalized names and quantities), and instructions.
 
-Guidelines:
-- Output strictly valid JSON, with no extra text or comments.
-- Normalize ingredient names and quantities.
-- Include the recipe title, a list of ingredients (with name and quantity), and step-by-step instructions.
-- No ingredient should be missing or duplicated.
-"""
+# Guidelines:
+# - Output strictly valid JSON, with no extra text or comments.
+# - Normalize ingredient names and quantities.
+# - Include the recipe title, a list of ingredients (with name and quantity), and step-by-step instructions.
+# - No ingredient should be missing or duplicated.
+# """
 
-        # Use centralized prompt template
-        prompt = f"""Please extract the recipe details from the following HTML content and return only a valid JSON object.
+#         # Use centralized prompt template
+#         prompt = f"""Please extract the recipe details from the following HTML content and return only a valid JSON object.
 
-HTML content:
-{html_content}
-"""
+# HTML content:
+# {html_content}
+# """
 
-        # Truncate prompt if too long
-        prompt = self.truncate_to_max_tokens(prompt)
+#         # Truncate prompt if too long
+#         prompt = self.truncate_to_max_tokens(prompt)
 
-        chat_params = {
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": prompt}
-            ],
-            "response_format": Recipe
-        }
+#         chat_params = {
+#             "messages": [
+#                 {"role": "system", "content": system},
+#                 {"role": "user", "content": prompt}
+#             ],
+#             "response_format": Recipe
+#         }
         
-        try:
-            return await self.complete_chat(chat_params)
-        except Exception as e:
-            logger.error(f"[{self.name}] Error in extract_recipe_data: {e}")
-            raise Exception("Failed to extract recipe data using AI provider.") from e
+#         try:
+#             return await self.complete_chat(chat_params)
+#         except Exception as e:
+#             logger.error(f"[{self.name}] Error in extract_recipe_data: {e}")
+#             raise Exception("Failed to extract recipe data using AI provider.") from e
 
-    async def search_best_match_products(self, ingredient: Ingredient, store: StoreConfig, fetch_content: list[dict]) -> ChatCompletionResult[Product]:
-        """Search grocery products for an ingredient using AI."""
+#     async def search_best_match_products(self, ingredient: Ingredient, store: StoreConfig, fetch_content: list[dict]) -> ChatCompletionResult[Product]:
+#         """Search grocery products for an ingredient using AI."""
 
-        logger.info(f"[{self.name}] Searching grocery products for {ingredient.name} in {store.name}")
+#         logger.info(f"[{self.name}] Searching grocery products for {ingredient.name} in {store.name}")
 
-        store_content = json.dumps(fetch_content, separators=(",", ":"))
+#         store_content = json.dumps(fetch_content, separators=(",", ":"))
 
-        if not store_content or store_content == "[]":
-            logger.warning(f"[{self.name}] No store content available to search for products.")
-            raise ValueError("No store content available to search for products.")
+#         if not store_content or store_content == "[]":
+#             logger.warning(f"[{self.name}] No store content available to search for products.")
+#             raise ValueError("No store content available to search for products.")
 
-        # Set system message
-        system = """You are an AI assistant specialized in searching and comparing grocery products online.
-Your task is to analyze the provided grocery store and ingredients, then return a structured JSON object containing the best-matched products.
+#         # Set system message
+#         system = """You are an AI assistant specialized in searching and comparing grocery products online.
+# Your task is to analyze the provided grocery store and ingredients, then return a structured JSON object containing the best-matched products.
 
-Guidelines:
-- Search the store for the listed ingredient, considering quantity and unit.
-- Return the best-matched product with the quantity needed based on the ingredient.
-- Round up quantities as needed to meet ingredient requirements.
-- Prioritize name similarity, product relevance, brand quality, and value (price per unit).
-- Include organic or premium options where applicable.
-- Output strictly valid JSON with no extra text or comments.
-- If no suitable match is found, clearly indicate this in the output.
-"""
+# Guidelines:
+# - Search the store for the listed ingredient, considering quantity and unit.
+# - Return the best-matched product with the quantity needed based on the ingredient.
+# - Round up quantities as needed to meet ingredient requirements.
+# - Prioritize name similarity, product relevance, brand quality, and value (price per unit).
+# - Include organic or premium options where applicable.
+# - Output strictly valid JSON with no extra text or comments.
+# - If no suitable match is found, clearly indicate this in the output.
+# """
 
-        # Use centralized prompt template
-        prompt = f"""Extract grocery the best-matched product from the store content.
+#         # Use centralized prompt template
+#         prompt = f"""Extract grocery the best-matched product from the store content.
 
-Store to search:
-{store.display_name} ({store.product_url_template})
+# Store to search:
+# {store.display_name} ({store.product_url_template})
 
-Ingredients:
-{ingredient}
+# Ingredients:
+# {ingredient}
 
-Store content:
-{store_content}
-"""
+# Store content:
+# {store_content}
+# """
 
-        # Truncate prompt if too long
-        prompt = self.truncate_to_max_tokens(prompt)
+#         # Truncate prompt if too long
+#         prompt = self.truncate_to_max_tokens(prompt)
 
-        chat_params = {
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": prompt}
-            ],
-            "response_format": Product
-        }
+#         chat_params = {
+#             "messages": [
+#                 {"role": "system", "content": system},
+#                 {"role": "user", "content": prompt}
+#             ],
+#             "response_format": Product
+#         }
         
-        try:
-            return await self.complete_chat(chat_params, max_tokens=500)
-        except Exception as e:
-            logger.error(f"[{self.name}] Error in search_grocery_products: {e}")
-            raise Exception("Failed to extract product data using AI provider.") from e
+#         try:
+#             return await self.complete_chat(chat_params, max_tokens=500)
+#         except Exception as e:
+#             logger.error(f"[{self.name}] Error in search_grocery_products: {e}")
+#             raise Exception("Failed to extract product data using AI provider.") from e
 
     async def close(self):
         await self._client.aclose()

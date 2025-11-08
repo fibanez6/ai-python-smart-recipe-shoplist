@@ -1,7 +1,10 @@
-from functools import partial
 import logging
+from functools import partial
 
-from app.scrapers.html_content_processor import process_html_content, process_html_content_with_selectors
+from app.scrapers.html_content_processor import (
+    process_html_content,
+    process_html_content_with_selectors,
+)
 from app.services.web_fetcher import get_web_fetcher
 
 from ..config.logging_config import get_logger, log_function_call
@@ -10,7 +13,6 @@ from ..manager.cache_manager import get_cache_manager
 from ..manager.storage_manager import get_storage_manager
 
 logger = get_logger(__name__)
-
 
 class WebScraper:
     """Service for processing data with caching and error handling."""
@@ -27,6 +29,12 @@ class WebScraper:
 
     async def _fetch(self, url: str, data_format: str ) -> dict:
         """Fetch content from cache, disk, or web (in that order)."""
+
+        log_function_call("WebScraper._fetch", {
+            "url": url,
+            "data_format": data_format
+        })
+
         # Try loading from cache
         cached_data = self.cache_manager.load(url)
         if cached_data:

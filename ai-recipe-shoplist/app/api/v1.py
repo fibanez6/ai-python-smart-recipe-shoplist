@@ -81,47 +81,6 @@ async def process_recipe(url: str = Form(...)):
         raise HTTPException(status_code=500, detail=detail)
 
 
-@api_v1_router.post("/process-recipe-ai")
-async def process_recipe_full_ai(recipe_url: str = Form(...)):
-    """Process a recipe URL and extract ingredients."""
-    try:
-        logger.info(f"Processing recipe AI URL: {recipe_url}")
-
-        # Use AI service for intelligent extraction
-        ai_service = get_ai_service()
-        
-        # Extract recipe using AI
-        recipe = await ai_service.shopping_assistant(recipe_url)
-
-        return APIResponse(
-            success=True,
-            data={
-                "url": recipe_url,
-                "recipe": recipe,
-            },
-            timestamp=datetime.now().isoformat()
-        )
-    except json.JSONDecodeError as e:
-        logger.error(f"JSON parsing error in process_recipe: {e}")
-        raise HTTPException(
-            status_code=422, 
-            detail="AI response was not valid JSON. This may indicate an AI service error. Please try again."
-        )
-    except Exception as e:
-        logger.error(f"Error processing recipe: {e}")
-        # Provide more user-friendly error messages
-        if "rate limit" in str(e).lower():
-            detail = "AI service rate limit exceeded. Please try again in a few moments."
-        elif "timeout" in str(e).lower():
-            detail = "AI service timeout. Please try again with a shorter recipe or check your connection."
-        elif "authentication" in str(e).lower() or "api key" in str(e).lower():
-            detail = "AI service authentication error. Please check your configuration."
-        else:
-            detail = f"An error occurred while processing the recipe: {str(e)}"
-        
-        raise HTTPException(status_code=500, detail=detail)
-
-
 @api_v1_router.post("/search-stores")
 async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
     """Search grocery stores for ingredients."""
