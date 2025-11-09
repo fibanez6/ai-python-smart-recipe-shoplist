@@ -1,7 +1,10 @@
 """AI Chat Client Module"""
 
 import json
+import logging
 import traceback
+
+import rich
 
 from app.ia_provider.provider_factory import AIProvider
 from app.services.tokenizer_service import TokenizerService
@@ -73,10 +76,14 @@ HTML content:
             logger.error(f"[{self.name}] Full stack trace: {traceback.format_exc()}")
             raise Exception("Failed to extract recipe data using AI provider.") from e
 
-    async def search_best_match_products(self, ingredient: Ingredient, store: StoreConfig, fetch_content: list[dict]) -> ChatCompletionResult[Product]:
+    async def search_best_match_products(self, ingredient: Ingredient, fetch_content: list[dict]) -> ChatCompletionResult[Product]:
         """Search grocery products for an ingredient using AI."""
 
-        logger.info(f"[{self.name}] Searching grocery products for {ingredient.name} in {store.name}")
+        logger.info(f"[{self.name}] Searching grocery products for {ingredient.name} using AI")
+
+        if logger.isEnabledFor(logging.DEBUG):
+            rich.print(fetch_content)
+            rich.print(ingredient)
 
         store_content = json.dumps(fetch_content, separators=(",", ":"))
 
@@ -101,10 +108,7 @@ Guidelines:
         # Use centralized prompt template
         prompt = f"""Extract grocery the best-matched product from the store content.
 
-Store to search:
-{store.display_name} ({store.product_url_template})
-
-Ingredients:
+Ingredient:
 {ingredient}
 
 Store content:

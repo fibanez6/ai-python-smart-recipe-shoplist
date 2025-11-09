@@ -89,9 +89,9 @@ def _process_by_product_tile_selector(html_content: str, product_title: str, sel
             # Append tile data to the list
             data.append(tile_data)
 
-        if logger.isEnabledFor(logging.DEBUG):
-            for idx, item in enumerate(data):
-                logger.debug(f"([WebFetcher] Element {idx}: {item}")
+        # if logger.isEnabledFor(logging.DEBUG):
+        #     for idx, item in enumerate(data):
+        #         logger.debug(f"([WebFetcher] Element {idx}: {item}")
 
         return data
 

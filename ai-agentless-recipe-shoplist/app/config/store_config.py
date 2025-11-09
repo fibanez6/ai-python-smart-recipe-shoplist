@@ -5,7 +5,9 @@ Contains store metadata, URLs, and search parameters.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
+
+from app.config.pydantic_config import RAPID_API_SETTINGS
 
 
 class StoreRegion(str, Enum):
@@ -28,86 +30,41 @@ class StoreConfig:
     # URLs and endpoints
     base_url: str
     search_url: str
-    search_api_template: str
-
-    # Product URL template
-    product_url_template: str
 
     # Search parameters
-    search_param: str = "q"
-    search_limit_param: Optional[str] = None
-    search_results_per_page: int = 5
-    search_max_pages: int = 3
+    search_api_url: Optional[str] = None
     search_type: str = "html"  # e.g., "html", "api", "graphql"
-    # search_function: callable
+    search_query_param: str = "q"
+    search_headers: Optional[dict[str, Any]] = None
+    search_params: Optional[dict[str, Any]] = None
+
+    search_api_result_jsonpath: Optional[str] = None  # e.g., "data.items" for nested JSON responses
+    search_api_result_jsonrules: Optional[dict[str, Any]] = None  # Extraction rules for JSON responses
 
     # Request settings
     request_rate_limit_delay: float = 1.0
     request_timeout: int = 30
     request_user_agent: Optional[str] = None
     
-    # Pricing and features
-    price_multiplier: float = 1.0
-    supports_delivery: bool = True
-    supports_click_collect: bool = True
-    
-    # Selectors for web scraping 
+    # Selectors for web scraping for search_type: "html"
     html_selectors: Optional[dict[str, str]] = None
     
     def get_search_url(self, query: str) -> str:
         """Generate search URL for a query."""
-        limit = f"&{self.search_limit_param}={self.search_results_per_page}" if self.search_limit_param else ""
-        # return f"{self.search_url}?{self.search_param}={query.replace(' ', '+')}{limit}"
-        return f"{self.search_url}?{self.search_param}={query.replace(' ', '%20')}{limit}"
+        params = self.get_query_params(query)
+        params_str = "&".join(f"{key}={value}" for key, value in params.items())
+
+        return f"{self.search_url}?{params_str}"
     
+    def get_query_params(self, query: str) -> dict:
+        """Generate product query string."""
+        return {
+            self.search_query_param: query.replace(" ", "%20"),
+            **(self.search_params or {}),
+        }
+
 # Australian grocery stores
 STORE_CONFIGS: dict[str, StoreConfig] = {
-    "coles": StoreConfig(
-        store_id="coles",
-        name="Coles",
-        display_name="Coles Supermarkets",
-        region=StoreRegion.AUSTRALIA,
-        base_url="https://www.coles.com.au",
-        search_url="https://coles-product-price-api.p.rapidapi.com/coles/product-search",
-        # search_api_template="https://www.coles.com.au/api/graphql",
-        search_api_template="https://www.coles.com.au/_next/data/20251029.1-5acc651e3b5f8a27a9fa067cf11fc08619865a7b/en/search/products.json?q={product_id}",
-        product_url_template="https://www.coles.com.au/product/{product_id}",
-        search_param="query",
-        search_limit_param="size",
-        search_type="coles_rapidapi",
-        request_rate_limit_delay=1.5,
-        price_multiplier=1.0,
-        # html_selectors={
-        #     "product_title": ".product-title",
-        #     "product_price": ".price",
-        #     "product_image": ".product-image img",
-        #     "product_brand": ".product-brand",
-        #     "product_size": ".product-size"
-        # }
-    ),
-    
-    "woolworths": StoreConfig(
-        store_id="woolworths", 
-        name="Woolworths",
-        display_name="Woolworths Supermarkets",
-        region=StoreRegion.AUSTRALIA,
-        base_url="https://www.woolworths.com.au",
-        search_url="https://www.woolworths.com.au/shop/search",
-        search_api_template="https://www.woolworths.com.au/api/search?q={query}",
-        product_url_template="https://www.woolworths.com.au/shop/productdetails/{product_id}",
-        search_param="searchTerm",
-        search_limit_param=None,
-        request_rate_limit_delay=1.2,
-        price_multiplier=1.05,
-        html_selectors={
-            "product_title": "[data-testid='product-title']",
-            "product_price": "[data-testid='product-price']",
-            "product_image": "[data-testid='product-image']",
-            "product_brand": "[data-testid='product-brand']",
-            "product_size": "[data-testid='product-package-size']"
-        }
-    ),
-    
     "aldi": StoreConfig(
         store_id="aldi",
         name="ALDI",
@@ -115,15 +72,15 @@ STORE_CONFIGS: dict[str, StoreConfig] = {
         region=StoreRegion.AUSTRALIA,
         base_url="https://www.aldi.com.au",
         search_url="https://www.aldi.com.au/results",
-        search_api_template="https://api.aldi.com.au/v3/product-search?currency=AUD&q={product_id}",
-        product_url_template="https://www.aldi.com.au/{product_id}",
-        search_param="q",
-        search_limit_param="limit",
-        search_results_per_page=12,
-        request_rate_limit_delay=2.0,  # More conservative for ALDI
-        price_multiplier=0.85,  # ALDI typically cheaper
-        supports_delivery=False,  # ALDI doesn't do delivery in most areas
-        search_max_pages=1,
+        search_api_url="https://api.aldi.com.au/v3/product-search",
+        search_query_param="q",
+        search_params={
+            "currency": "AUD",
+            "limit": 12
+        },
+        # search_type="html",
+        search_type="Aldi_api",
+        search_api_result_jsonpath="data",
         html_selectors={
             "product_tile": ".product-tile",
             "product_name": '.product-tile__name',
@@ -133,9 +90,67 @@ STORE_CONFIGS: dict[str, StoreConfig] = {
             "product_brand": '.product-tile__brandname',
             "product_url": '.product-tile__link'
         },
-        # search_function=get_web_scraper().fetch_and_process
+        search_api_result_jsonrules={
+            "data": {
+                "fields": ["name", "brandName", "quantityUnit", "sellingSize"],
+                "price": {
+                    "fields": ["amount", "amountRelevantDisplay", "comparisonDisplay"],
+                },
+                "categories[*].name": True,
+                # extract only first image URL
+                "assets": {
+                    "limit": 1,
+                    "fields": ["url"],
+                },
+            }
+        },
+        request_rate_limit_delay=2.0  # More conservative for ALDI
+    ),
+
+    "coles": StoreConfig(
+        store_id="coles",
+        name="Coles",
+        display_name="Coles Supermarkets",
+        region=StoreRegion.AUSTRALIA,
+        base_url="https://www.coles.com.au",
+        search_url="https://coles-product-price-api.p.rapidapi.com/coles/product-search",
+        search_api_url="https://coles-product-price-api.p.rapidapi.com/coles/product-search",
+        search_type="coles_rapidapi",
+        search_query_param="query",
+        search_api_result_jsonpath="results",
+        search_headers={
+            "x-rapidapi-key":  RAPID_API_SETTINGS.api_key
+        },
+        search_params={
+            "size": 12
+        },
+        search_api_result_jsonrules={
+            "results": True
+        },
+        request_rate_limit_delay=1.5,
     ),
     
+    "woolworths": StoreConfig(
+        store_id="woolworths", 
+        name="Woolworths",
+        display_name="Woolworths Supermarkets",
+        region=StoreRegion.AUSTRALIA,
+        base_url="https://www.woolworths.com.au",
+        search_url="https://www.woolworths.com.au/shop/search",
+        search_query_param="searchTerm",
+        search_params={
+            "size": 12
+        },
+        html_selectors={
+            "product_title": "[data-testid='product-title']",
+            "product_price": "[data-testid='product-price']",
+            "product_image": "[data-testid='product-image']",
+            "product_brand": "[data-testid='product-brand']",
+            "product_size": "[data-testid='product-package-size']"
+        },
+        request_rate_limit_delay=1.2,
+    ),
+        
     "iga": StoreConfig(
         store_id="iga",
         name="IGA",
@@ -143,20 +158,15 @@ STORE_CONFIGS: dict[str, StoreConfig] = {
         region=StoreRegion.AUSTRALIA,
         base_url="https://www.iga.com.au", 
         search_url="https://www.iga.com.au/search",
-        search_api_template="https://www.iga.com.au/api/search?q={query}",
-        product_url_template="https://www.iga.com.au/product/{product_id}",
-        search_param="term",
-        search_limit_param=None,
-        search_max_pages=2,  # Smaller chain, fewer results
-        request_rate_limit_delay=1.8,
-        price_multiplier=1.15,  # IGA typically more expensive
+        search_query_param="term",
         html_selectors={
             "product_title": ".product-name",
             "product_price": ".product-price",
             "product_image": ".product-img",
             "product_brand": ".product-brand",
             "product_size": ".product-weight"
-        }
+        },
+        request_rate_limit_delay=1.8
     ),
 
 }

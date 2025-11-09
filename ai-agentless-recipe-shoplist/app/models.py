@@ -3,7 +3,9 @@
 from enum import Enum
 from typing import Any, Generic, Optional, TypeVar
 
+import rich
 from pydantic import BaseModel, Field
+
 
 class QuantityUnit(str, Enum):
     """Standard quantity units for ingredients."""
@@ -59,11 +61,14 @@ class Ingredient(BaseModel):
     brand_preference: Optional[str] = Field(None, description="Preferred brand for the ingredient")
 
     def __str__(self) -> str:
-        name_str = f"{self.name}"
-        qty_str = f": {self.quantity} " if self.quantity is not None else "1 "
-        unit_str = f"{self.unit.value} " if self.unit is not None else "unit "
-        brand_str = f" (Preference brand: {self.brand_preference}) " if self.brand_preference else ""
-        return f"{name_str}{qty_str}{unit_str}{brand_str}"
+        name_str = self.name
+        qty_str = f": {self.quantity or 1} "
+        unit_str = f"{self.unit.value} "
+        brand_str = f"(Preference brand: {self.brand_preference}) " if self.brand_preference else ""
+        category_str = f"({self.category})" if self.category else ""
+        alternatives_str = f" Alternatives: {', '.join(self.alternatives)}." if self.alternatives else ""
+        return f"{name_str}{qty_str}{unit_str}{brand_str}{category_str}{alternatives_str}".strip()
+    
 
 class Recipe(BaseModel):
     """Represents a parsed recipe."""

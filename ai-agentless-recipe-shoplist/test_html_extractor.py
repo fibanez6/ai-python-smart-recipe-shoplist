@@ -7,8 +7,7 @@ import rich
 from dotenv import load_dotenv
 
 from app.config.logging_config import setup_logging
-from app.manager.blob_manager import get_storage_manager
-from app.scrapers.html_content_processor import process_html_content
+from app.scrapers.html_content_extractor import process_html_content
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 

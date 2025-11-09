@@ -86,8 +86,7 @@ class AIService:
 
                     # Use web scraper to fetch and process content
                     scraper = ScraperFactory.create_scraper(store)
-                    url = store.get_search_url(ingredient.name)
-                    fetch_result = await scraper.scrape(url, store)
+                    fetch_result = await scraper.query_products(ingredient.name, store)
 
                     # url = store.get_search_url(ingredient.name)
                     # fetch_result = await self.web_scraper.fetch_and_process(url, store.html_selectors, store.search_type)
@@ -95,17 +94,19 @@ class AIService:
                     if "data" not in fetch_result:
                         raise ValueError("No data found in fetched result for ingredient extraction")
                     
-                    store_fetch_results[store.store_id] = fetch_result
+                    store_fetch_results[store.store_id] = fetch_result.get("data", [])
                 except Exception as e:
                     logger.error(f"[{self.name}] Error searching products in store {store.name}: {e}")
                     continue
 
-            # Search for best match products using AI provider
-            fetch_data_processed = []
-            for fetch in store_fetch_results.values():
-                if fetch.get("data"):
-                    fetch_data_processed.extend(fetch.get("data"))
-            ia_response: ChatCompletionResult[Product] = await self.ai_chat_client.search_best_match_products(ingredient, store, fetch_data_processed)
+            # # Search for best match products using AI provider
+            # fetch_data_processed = []
+            # for fetch in store_fetch_results.values():
+            #     if fetch.get("data"):
+            #         fetch_data_processed.extend(fetch.get("data"))
+
+            # Use AI to find the best match products
+            ia_response: ChatCompletionResult[Product] = await self.ai_chat_client.search_best_match_products(ingredient, store_fetch_results)
 
             # Parse AI response into Product model
             product = ia_response.content if isinstance(ia_response.content, Product) else Product(**ia_response.content)

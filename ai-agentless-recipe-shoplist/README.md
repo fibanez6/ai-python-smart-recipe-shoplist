@@ -77,7 +77,7 @@ ai-recipe-shoplist/
 │   │   ├── github_provider.py      # GitHub Models implementation
 │   │   └── stub_provider.py        # Stub implementation for testing
 │   ├── scrapers/
-│   │   └── html_content_processor.py  # HTML content extraction & processing
+│   │   └── html_content_extractor.py  # HTML content extraction & processing
 │   ├── templates/
 │   │   └── index.html             # Web interface template
 │   ├── static/
@@ -337,7 +337,7 @@ mypy app/
 ### Adding New Features
 
 1. **New API Endpoints**: Add to `app/api/v1.py` for current API or create `app/api/v2.py` for new API version
-2. **New Recipe Sites**: Extend web fetching and parsing in `web_data_service.py` and `html_content_processor.py`
+2. **New Recipe Sites**: Extend web fetching and parsing in `web_data_service.py` and `html_content_extractor.py`
 3. **New AI Providers**: Implement `BaseAIProvider` in `ia_provider/` directory
 4. **New Configuration**: Add settings to `pydantic_config.py` with proper validation
 5. **New Services**: Create new services in `services/` directory with proper logging

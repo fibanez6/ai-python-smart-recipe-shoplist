@@ -29,3 +29,4 @@ def object_to_str(obj: Any) -> str:
         return str(obj.__dict__)
     else:
         return str(obj)
+    

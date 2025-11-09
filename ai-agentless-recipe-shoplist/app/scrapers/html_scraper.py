@@ -2,15 +2,15 @@ import logging
 import traceback
 from functools import partial
 
+from app.config.logging_config import get_logger, log_function_call
 from app.config.store_config import StoreConfig
-from app.scrapers.html_content_processor import (
-    process_html_content,
-    process_html_content_with_selectors,
-)
 from app.services.web_fetcher import get_web_fetcher
 from app.storage.storage_manager import get_storage_manager
 
-from ..config.logging_config import get_logger, log_function_call
+from .html_content_extractor import (
+    process_html_content,
+    process_html_content_with_selectors,
+)
 
 logger = get_logger(__name__)
 
@@ -111,8 +111,11 @@ class HTMLScraper:
             logger.error(f"[{self.name}] Full stack trace: {traceback.format_exc()}")
             raise
 
-    async def scrape(self, url: str, store_config: StoreConfig) -> dict:
-        """Scrape a web page and return processed data."""
+    async def query_products(self, product_name: str, store_config: StoreConfig) -> dict:
+        """Query products from HTML store."""
+
+        url = store_config.get_search_url(product_name)
+
         logger.info(f"{self.name}: Scraping URL: {url}")
         return await self.fetch_and_process(url, store_config.html_selectors, store_config.search_type)
 
