@@ -1,0 +1,152 @@
+{
+  "success": true,
+  "stores": [
+    {
+      "name": "ALDI",
+      "display_name": "ALDI Australia",
+      "region": "au",
+      "base_url": "https://www.aldi.com.au"
+    }
+  ],
+  "products": [
+    {
+      "name": "Tomatoes 800g",
+      "ingredient": "tomatoes",
+      "price": 2.99,
+      "store": "aldi",
+      "quantity": 2,
+      "url": "https://www.aldi.com.au/product/no-brand-tomatoes-800g-000000000000380347",
+      "image_url": "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/864/a77d82a1-4987-49cc-8f25-f7bc4326da5f/no-brand-tomatoes-800g",
+      "brand": null,
+      "size": "0.8 kg",
+      "unit_price": 3.74,
+      "availability": true,
+      "ia_reasoning": "The selected product is fresh, matches the required quantity closely, and offers good value."
+    },
+    {
+      "name": "Continental Cucumber Each",
+      "ingredient": "cucumber",
+      "price": 1.49,
+      "store": "aldi",
+      "quantity": 1,
+      "url": "https://www.aldi.com.au/product/continental-cucumber-each-000000000000380251",
+      "image_url": "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/864/f3c42eb2-6086-450d-96c9-ec65ee1ff938/continental-cucumber-each",
+      "brand": null,
+      "size": "1 each",
+      "unit_price": 1.49,
+      "availability": true,
+      "ia_reasoning": "The selected product is a fresh cucumber that matches the ingredient requirement of 1 unit."
+    },
+    {
+      "name": "Garlic 3 Pack",
+      "ingredient": "garlic cloves",
+      "price": 2.99,
+      "store": "aldi",
+      "quantity": 1,
+      "url": "https://www.aldi.com.au/product/no-brand-garlic-3-pack-000000000000380071",
+      "image_url": "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/864/9ebfaab5-0f3d-492e-a81b-418a6c81b731/no-brand-garlic-3-pack",
+      "brand": null,
+      "size": "3 each",
+      "unit_price": 1.0,
+      "availability": true,
+      "ia_reasoning": "Selected the Garlic 3 Pack as it provides whole garlic cloves, matching the ingredient requirement."
+    },
+    {
+      "name": "Red Onions 1kg",
+      "ingredient": "red onion",
+      "price": 4.49,
+      "store": "aldi",
+      "quantity": 1,
+      "url": "https://www.aldi.com.au/product/no-brand-red-onions-1kg-000000000000583536",
+      "image_url": "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/864/83db1521-67be-490c-930c-098524113d5c/no-brand-red-onions-1kg",
+      "brand": null,
+      "size": "1 kg",
+      "unit_price": 4.49,
+      "availability": true,
+      "ia_reasoning": "The selected product is the most relevant match for the ingredient 'red onion' in terms of type and quantity."
+    },
+    {
+      "name": "Extra Virgin Olive Oil 750ml",
+      "ingredient": "extra virgin olive oil",
+      "price": 10.49,
+      "store": "aldi",
+      "quantity": 1,
+      "url": "https://www.aldi.com.au/product/the-olive-tree-extra-virgin-olive-oil-750ml-000000000000592792",
+      "image_url": "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/864/4d68184b-a714-4126-b3da-a9c1777f2f57/the-olive-tree-extra-virgin-olive-oil-750ml",
+      "brand": "THE OLIVE TREE",
+      "size": "750 ml",
+      "unit_price": 1.4,
+      "availability": true,
+      "ia_reasoning": "Selected for its sufficient quantity, competitive price, and high relevance to the ingredient."
+    },
+    {
+      "name": "White Wine Vinegar 500ml",
+      "ingredient": "sherry vinegar",
+      "price": 2.49,
+      "store": "aldi",
+      "quantity": 1,
+      "url": "https://www.aldi.com.au/product/remano-white-wine-vinegar-500ml-000000000274992003",
+      "image_url": "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/864/d49d204c-54d2-481a-acf9-85734e0854ed/remano-white-wine-vinegar-500ml",
+      "brand": "REMANO",
+      "size": "500 ml",
+      "unit_price": 0.5,
+      "availability": true,
+      "ia_reasoning": "Selected due to its relevance as a white wine vinegar, which is a suitable alternative to sherry vinegar."
+    },
+    {
+      "name": "Table Salt 750g",
+      "ingredient": "kosher salt",
+      "price": 2.99,
+      "store": "aldi",
+      "quantity": 1,
+      "url": "https://www.aldi.com.au/product/stonemill-table-salt-750g-000000000370470001",
+      "image_url": "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/864/ef7ec800-eebc-4d74-8b6c-56fc01e49da1/stonemill-table-salt-750g",
+      "brand": "STONEMILL",
+      "size": "750 g",
+      "unit_price": 0.04,
+      "availability": true,
+      "ia_reasoning": "This product is a direct match for the ingredient 'kosher salt' and provides a sufficient quantity for the recipe."
+    },
+    {
+      "name": "Ground Black Pepper 100g",
+      "ingredient": "black pepper",
+      "price": 3.99,
+      "store": "aldi",
+      "quantity": 1,
+      "url": "https://www.aldi.com.au/product/stonemill-ground-black-pepper-100g-000000000573213001",
+      "image_url": "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/864/a061a258-eae3-4e7b-a1c8-d86b3a6d4ebd/stonemill-ground-black-pepper-100g",
+      "brand": "STONEMILL",
+      "size": "100 g",
+      "unit_price": 0.4,
+      "availability": true,
+      "ia_reasoning": "Selected the product 'Ground Black Pepper 100g' as it directly matches the ingredient 'black pepper' and provides sufficient quantity for the recipe."
+    }
+  ],
+  "ia_stats": [
+    {
+      "data_from": "local_disk"
+    },
+    {
+      "data_from": "local_disk"
+    },
+    {
+      "data_from": "local_disk"
+    },
+    {
+      "data_from": "local_disk"
+    },
+    {
+      "data_from": "local_disk"
+    },
+    {
+      "data_from": "local_disk"
+    },
+    {
+      "data_from": "local_disk"
+    },
+    {
+      "data_from": "local_disk"
+    }
+  ],
+  "timestamp": "2025-11-10T18:49:22.797759"
+}

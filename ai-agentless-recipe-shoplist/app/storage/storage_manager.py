@@ -29,11 +29,14 @@ class StorageManager:
         self.blob_storage = get_blob_manager()
         self.ai_blob_storage = BlobManager(BLOB_SETTINGS.base_path / "ai_cache")
 
+        self.storage_api_path = BlobManager(BLOB_SETTINGS.base_path / "api_cache")
+
+
     async def save_fetch(self, key: str, data: Any, **kwargs) -> None:
         """Save fetched content to cache and blob storage."""
 
-        alias = kwargs.get('alias', None)
-        format = kwargs.get('format', None)
+        alias = kwargs.get('alias', "html")
+        format = kwargs.get('format', "html")
 
         log_function_call("StorageManager.save_fetch", {
             "storage_key": key,
@@ -79,8 +82,8 @@ class StorageManager:
     async def save_ai_response(self, key: str, data: dict, **kwargs) -> None:
         """Save AI response to cache and blob storage."""
 
-        alias = kwargs.get('alias', None)
-        format = kwargs.get('format', None)
+        alias = kwargs.get('alias', "json")
+        format = kwargs.get('format', "json")
 
         log_function_call("StorageManager.save_ai_response", {
             "key": key,
@@ -145,6 +148,22 @@ class StorageManager:
             logger.error(f"[{self.name}] Error building chat result: {e}")
             logger.error(f"[{self.name}] Full stack trace: {traceback.format_exc()}")
             return None
+
+    async def save_api_response(self, key: str, data: dict, **kwargs) -> None:
+        """Store API response in cache and blob storage."""
+        alias = kwargs.get('alias', "json")
+        format = kwargs.get('format', "json")
+
+        log_function_call("StorageManager.store_api_response", {
+            "storage_key": key,
+            "alias": alias,
+            "format": format,
+            "data_preview": str(data)[:50] + ("..." if len(str(data)) > 50 else "")
+        })
+
+        if data:
+            self.cache_manager.save(key, data, format=format, alias=alias)
+            await self.storage_api_path.save(key, data, format=format, alias=alias)
 
     def clear_storage(self) -> None:
         """Clear all data from cache and blob storage."""
