@@ -1,42 +1,38 @@
-# AI Agent Recipe Shoplist
+# MCP Multi-agent - Demo
 
-A Python application that crawls recipes and generates shopping lists using AI agents.
+1. Crear un virtualenv e instalar dependencias:
 
-## Features
-
-- Recipe crawling and parsing
-- Automated shopping list generation
-- AI-powered ingredient extraction
-- Easy-to-use interface
-
-## Installation
-
-```bash
+```
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Usage
-
-```bash
-python main.py
-```
-
-## Project Structure
+2. Poner variables de entorno (opcional):
 
 ```
-ai-agent-recipe_shoplist/
-├── README.md
-├── requirements.txt
-└── main.py
+export SPOONACULAR_KEY=...
+export SERPAPI_KEY=...
+export CACHE_DB=./data/cache.db
 ```
 
-## Contributing
+3. Ejecutar demo:
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+```
+./run.sh
+# o
+python -m uvicorn orchestrator:app --reload
+```
 
-## License
+4. POST a `http://localhost:8000/process-recipe` con JSON: `{ "recipe_url": "https://..." }`
+```
 
-MIT License
+---
+
+## Comentarios finales
+
+- Todo el IO es asíncrono (httpx + aiosqlite) para evitar operaciones bloqueantes.
+- Se usa `aiosqlite` (SQLite) por portabilidad. Si quieres, cambio a Redis para mayor rendimiento y concurrencia.
+- He activado la preferencia por `uvloop` en el script de arranque, pero `uvicorn` ya usa uvloop internamente si está instalado.
+
+Si quieres que genere un ZIP del repo, o que cree el repo en GitHub/Gist, lo hago ahora. También puedo cambiar la DB a Redis (con `aioredis`) si prefieres.
