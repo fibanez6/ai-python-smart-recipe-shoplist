@@ -47,7 +47,7 @@ class RecipeURL(BaseModel):
 async def process_recipe(url: str = Form(...)):
     """Process a recipe URL and extract ingredients."""
     try:
-        logger.info(f"Processing recipe URL: {url}")
+        logger.info(f"[v1] Processing recipe URL: {url}")
         
         # Use AI service for intelligent extraction
         ai_service = get_ai_service()
@@ -55,7 +55,7 @@ async def process_recipe(url: str = Form(...)):
         # Extract recipe using AI
         response = await ai_service.extract_recipe_intelligently(url)
 
-        logger.info(f"Extracted recipe: {response['recipe'].title} with {len(response['recipe'].ingredients)} ingredients")
+        logger.info(f"[v1] Extracted recipe: {response['recipe'].title} with {len(response['recipe'].ingredients)} ingredients")
 
         return APIResponse(
             success=True,
@@ -64,14 +64,15 @@ async def process_recipe(url: str = Form(...)):
         )
         
     except json.JSONDecodeError as e:
-        logger.error(f"JSON parsing error in process_recipe: {e}")
+        logger.error(f"[v1] JSON parsing error in process_recipe: {e}")
         logger.error("Stack trace:\n" + pprint.pformat(traceback.format_exc()))
         raise HTTPException(
             status_code=422, 
             detail="AI response was not valid JSON. This may indicate an AI service error. Please try again."
         )
     except Exception as e:
-        logger.error(f"Error processing recipe: {e}")
+        logger.error(f"[v1] Error processing recipe: {e}")
+        logger.error(f"[v1] Full stack trace: {traceback.format_exc()}")
         # Provide more user-friendly error messages
         if "rate limit" in str(e).lower():
             detail = "AI service rate limit exceeded. Please try again in a few moments."
@@ -80,7 +81,7 @@ async def process_recipe(url: str = Form(...)):
         elif "authentication" in str(e).lower() or "api key" in str(e).lower():
             detail = "AI service authentication error. Please check your configuration."
         else:
-            detail = f"An error occurred while processing the recipe: {str(e)}"
+            detail = f"[v1] An error occurred while processing the recipe: {str(e)}"
         
         raise HTTPException(status_code=500, detail=detail)
 
@@ -89,7 +90,7 @@ async def process_recipe(url: str = Form(...)):
 async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
     """Search grocery stores for ingredients."""
     try:
-        logger.info(f"[API] Searching stores for {len(request.ingredients)} ingredients in stores: {request.stores}")
+        logger.info(f"[v1] [API] Searching stores for {len(request.ingredients)} ingredients in stores: {request.stores}")
 
         # Search all stores (or specified stores)
         stores_names = [store.lower() for store in request.stores]
@@ -105,13 +106,13 @@ async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
 
         async def search_ingredient(ingredient: Ingredient):
             """Search for a single ingredient."""
-            logger.info(f"[API] Searching stores for ingredient: {ingredient.name}")
+            logger.info(f"[v1] [API] Searching stores for ingredient: {ingredient.name}")
 
             # Search for products using AI
             response = await ai_service.search_grocery_products_intelligently(ingredient, stores)
 
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug((f"[API] AI search for ingredient '{ingredient.name}' - output:", response))
+                logger.debug((f"[v1] [API] AI search for ingredient '{ingredient.name}' - output:", response))
             
             return response
 
@@ -130,11 +131,11 @@ async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
 
         for response in responses:
             if isinstance(response, Exception):
-                logger.error(f"[API] Error in ingredient search: {response}")
+                logger.error(f"[v1] [API] Error in ingredient search: {response}")
                 continue
                 
             # Process the AI response for this ingredient
-            logger.debug(f"[API] AI response for ingredient search: {response}")    
+            logger.debug(f"[v1] [API] AI response for ingredient search: {response}")    
 
             product: Product = response.get("product")
             if product:
@@ -144,7 +145,7 @@ async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
             if ai_info:
                 ia_stats.append(ai_info)
 
-        logger.info(f"[API] Completed store search for {len(ingredients)} ingredients")
+        logger.info(f"[v1] [API] Completed store search for {len(ingredients)} ingredients")
 
         return SearchStoresResponse(
             success=True,
@@ -155,7 +156,7 @@ async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
         )
         
     except Exception as e:
-        logger.error(f"[API] Error occurred while searching stores: {e}")
+        logger.error(f"[v1] [API] Error occurred while searching stores: {e}")
         logger.error("Stack trace:\n" + pprint.pformat(traceback.format_exc()))
         # Provide more user-friendly error messages
         if "rate limit" in str(e).lower():
@@ -165,7 +166,7 @@ async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
         elif "authentication" in str(e).lower() or "api key" in str(e).lower():
             detail = "AI service authentication error. Please check your configuration."
         else:
-            detail = f"An error occurred while searching stores: {str(e)}"
+            detail = f"[v1] An error occurred while searching stores: {str(e)}"
         
         raise HTTPException(status_code=500, detail=detail)
 
@@ -270,7 +271,7 @@ async def demo_recipe() -> SearchStoresResponse:
         return SearchStoresResponse(**stub_data)
         
     except Exception as e:
-        logger.error(f"Error loading demo stub data: {e}")
+        logger.error(f"[v1] Error loading demo stub data: {e}")
         # Fallback to empty response
         return SearchStoresResponse(
             success=False,

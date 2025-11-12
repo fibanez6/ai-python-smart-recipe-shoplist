@@ -178,6 +178,14 @@ class CacheSettings(BaseSettings):
 
     model_config = ConfigDict(env_prefix="CACHE_")
 
+class DBManagerSettings(BaseSettings):
+    """Database manager configuration settings."""
+
+    path: str = Field(default="tmp/shoplist.db", description="Path to the database file")
+    enabled: bool = Field(default=True, description="Enable database storage")
+
+    model_config = ConfigDict(env_prefix="DB_")
+
 class RapidAPISettings(BaseSettings):
     """RapidAPI configuration settings."""
 
@@ -204,11 +212,12 @@ class AppSettings(BaseSettings):
     tiktoken: TiktokenSettings = Field(default_factory=TiktokenSettings)
     blob: BlobSettings = Field(default_factory=BlobSettings)
     cache: CacheSettings = Field(default_factory=CacheSettings)
+    db_manager: DBManagerSettings = Field(default_factory=DBManagerSettings)
     rapid_api: RapidAPISettings = Field(default_factory=RapidAPISettings)
 
     @field_validator('web_fetcher', 'web_scraper', 'ai_provider', 'openai', 'azure', 
                      'ollama', 'github', 'logging', 'server', 'retry', 'mock', 'tiktoken', 
-                     'blob', 'cache', 'rapid_api', mode='before')
+                     'blob', 'cache', 'db_manager', 'rapid_api', mode='before')
     @classmethod
     def ensure_settings_instances(cls, v, info):
         """Ensure all settings are properly instantiated."""
@@ -294,6 +303,7 @@ RAPID_API_SETTINGS = settings.rapid_api
 # Blob storage settings
 BLOB_SETTINGS = settings.blob
 CACHE_SETTINGS = settings.cache
+DB_MANAGER_SETTINGS = settings.db_manager
 
 LOG_SETTINGS = settings.logging
 

@@ -235,7 +235,7 @@ def log_function_call(func_name: str, args: dict = None, level: int = logging.DE
         # Sanitize sensitive data
         safe_args = {}
         for key, value in args.items():
-            if key.lower() in ['max_tokens', 'max_token', 'cache_key', 'storage_key', 'data_keys']:
+            if key.lower() in ['max_tokens', 'max_token', 'cache_key', 'storage_key', 'data_keys', 'hash_key']:
                 return value
             if any(sensitive in key.lower() for sensitive in ['token', 'key', 'password', 'secret']):
                 safe_args[key] = f"{'*' * min(8, len(str(value)))}"

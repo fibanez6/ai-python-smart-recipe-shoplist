@@ -6,6 +6,7 @@ from typing import Any, Optional
 
 from app.config.pydantic_config import BLOB_SETTINGS
 from app.models import ChatCompletionResult
+from app.storage.db_manager import DBManager, get_db_manager
 
 from ..config.logging_config import get_logger, log_function_call
 from ..storage.blob_manager import BlobManager, get_blob_manager
@@ -25,6 +26,8 @@ class StorageManager:
 
         self.cache_manager = get_cache_manager()
         self.ai_cache_manager = get_cache_manager(ttl=CACHE_SETTINGS.ai_ttl)
+
+        self.db_manager = get_db_manager()
 
         self.blob_storage = get_blob_manager()
         self.ai_blob_storage = BlobManager(BLOB_SETTINGS.base_path / "ai_cache")
@@ -47,6 +50,7 @@ class StorageManager:
 
         if data:
             self.cache_manager.save(key, data, format=format, alias=alias)
+            self.db_manager.save(key, data, format=format, alias=alias)
             await self.blob_storage.save(key, data, format=format, alias=alias)
 
     async def load_fetch(self, key: str, **kwargs) -> str:
@@ -69,6 +73,12 @@ class StorageManager:
         if cached_data:
             logger.info(f"[{self.name}] Loaded data from cache for {key}")
             return cached_data
+        
+        # Try loading from database
+        db_data = self.db_manager.load(key=key, alias=alias)
+        if db_data:
+            logger.info(f"[{self.name}] Loaded data from database for {key}")
+            return db_data
 
         # Try loading from blob storage
         blob_data = await self.blob_storage.load(key=key, alias=alias, format=format)
@@ -76,7 +86,7 @@ class StorageManager:
             logger.info(f"[{self.name}] Loaded data from blob storage for {key}")
             return blob_data
 
-        logger.info(f"[{self.name}] No data found in cache or blob storage for {key}")
+        logger.info(f"[{self.name}] No data found in cache, database, or blob storage for {key}")
         return None
     
     async def save_ai_response(self, key: str, data: dict, **kwargs) -> None:
@@ -86,7 +96,7 @@ class StorageManager:
         format = kwargs.get('format', "json")
 
         log_function_call("StorageManager.save_ai_response", {
-            "key": key,
+            "storage_key": key,
             "alias": alias,
             "format": format,
             "data_preview": str(data)[:50] + ("..." if len(str(data)) > 50 else "")
@@ -94,6 +104,7 @@ class StorageManager:
 
         if data:
             self.ai_cache_manager.save(key=key, obj=data, alias=alias)
+            self.db_manager.save(key=key, obj=data, alias=alias)
             await self.ai_blob_storage.save(key=key, obj=data, alias=alias, format=format)
 
     async def load_ai_response(self, key: str, **kwargs) -> dict | None:
@@ -113,6 +124,12 @@ class StorageManager:
         if cached_data:
             logger.info(f"[{self.name}] Loaded AI response from AI cache for model_class: {model_class}")
             return self._build_chat_result(cached_data, model_class=None)  # Set None to avoid double parsing
+
+        # Try database next
+        db_data = self.db_manager.load(key=key, alias=alias)
+        if db_data:
+            logger.info(f"[{self.name}] Loaded AI response from AI database for model_class: {model_class}")
+            return self._build_chat_result(db_data, model_class=None)  # Set None to avoid double parsing
 
         # Try blob storage if cache miss
         disk_data = await self.ai_blob_storage.load(key=key, alias=alias, model_class=ChatCompletionResult)
