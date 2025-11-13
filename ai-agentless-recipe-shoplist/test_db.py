@@ -4,6 +4,7 @@ import rich
 import pickle
 
 from app.storage.db_manager import get_db_manager
+from app.utils.str_helpers import object_to_str
 
 rich.print("\n--- Using Key-Value mode (no collection) ---")
 
@@ -35,15 +36,20 @@ rich.print("\n--- Using Key-Value mode (no collection) ---")
 
 #     # Get all data
 #     for key,val in db:
-#         rich.print(f"Key: {key} => Value: {val}")
+#         obj_dict = pickle.loads(val)
+#         obj_str = object_to_str(obj_dict)
+#         rich.print(f"Key: {key} => Value: {obj_str[:200]}...")  # Print first 200 chars
     
 #     rich.print(f"Total entries in DB: {len(db)}\n")
 
 
 
 with UnQLite('/tmp/ai_shopping/db/shoplist.db') as db:
-    hash_key='ec6fd0719967fad5f1f65a2824692321'
+    hash_key='1d33c0f2a7036fd48cf005a7fe1d046e'
     obj_bytes = db[hash_key]
     obj_dict = pickle.loads(obj_bytes)
 
     rich.print(f"\nLoaded data for '{hash_key}': {obj_dict}\n")
+
+    del db[hash_key]
+    rich.print(f"Deleted key '{hash_key}' from the database.")

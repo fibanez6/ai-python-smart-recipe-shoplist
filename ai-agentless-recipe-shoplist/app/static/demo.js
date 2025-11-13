@@ -20,21 +20,16 @@ class DemoManager {
 
       console.log("Demo data loaded:", demoResult);
 
-      // Set demo products and stores
-      this.app.currentProducts = demoResult.products || [];
-
-      // Map products to ingredients for display
-      this.app.mapProductsToIngredients();
-
-      // Create a demo recipe to match the products
+      // Set demo shopping list items
+      this.app.currentShoppingItems = demoResult.shopping_list_items || [];
       this.app.currentRecipe = this.createDemoRecipe();
+      this.app.mapShoppingItemsToIngredients();
 
-      // Display the results directly since we have the products
-      this.displayDemoResults({
-        recipe: this.app.currentRecipe,
-        products: this.app.currentProducts,
-        stores: demoResult.stores || [],
-      });
+      // Display the demo results using custom rendering
+      this.renderDemoResult(
+        this.app.currentRecipe,
+        this.app.currentShoppingItems
+      );
 
       this.app.hideLoading();
     } catch (error) {
@@ -42,6 +37,176 @@ class DemoManager {
       this.app.showError(`Demo error: ${error.message}`);
       this.app.hideLoading();
     }
+  }
+
+  renderDemoResult(recipe, shoppingListItems) {
+    const resultsSection = document.getElementById("resultsSection");
+    const resultsContent = document.getElementById("resultsContent");
+    if (!resultsSection || !resultsContent) return;
+
+    const html = `
+      <!-- Demo Banner -->
+      <div class="alert alert-info">
+        <h5><i class="fas fa-flask me-2"></i>Demo Mode - Gazpacho Recipe</h5>
+        <p class="mb-0">This is a demo showing how the app works with pre-loaded product data from ALDI.</p>
+      </div>
+
+      <!-- Recipe Information -->
+      <div class="recipe-card fade-in">
+        <div class="recipe-title">
+          <i class="fas fa-utensils me-2"></i>
+          ${recipe.title}
+        </div>
+        <div class="recipe-meta">
+          ${
+            recipe.servings
+              ? `<div class="meta-item"><i class="fas fa-users"></i> ${recipe.servings} servings</div>`
+              : ""
+          }
+          ${
+            recipe.prep_time
+              ? `<div class="meta-item"><i class="fas fa-clock"></i> ${recipe.prep_time}</div>`
+              : ""
+          }
+          ${
+            recipe.cook_time
+              ? `<div class="meta-item"><i class="fas fa-fire"></i> ${recipe.cook_time}</div>`
+              : ""
+          }
+        </div>
+        ${recipe.description ? `<p>${recipe.description}</p>` : ""}
+        <a href="${
+          recipe.url
+        }" target="_blank" class="btn btn-outline-primary btn-sm">
+          <i class="fas fa-external-link-alt me-1"></i>
+          View Original Recipe
+        </a>
+      </div>
+
+      <!-- Shopping List -->
+      <div class="mb-4">
+        <h5 class="mb-3">
+          <i class="fas fa-shopping-basket me-2"></i>
+          Shopping List
+        </h5>
+        <div class="ingredients-grid">
+          ${this.renderShoppingList(shoppingListItems)}
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      ${
+        recipe.instructions && recipe.instructions.length > 0
+          ? `
+        <div class="mb-4">
+          <h5 class="mb-3">
+            <i class="fas fa-list-ol me-2"></i>
+            Instructions
+          </h5>
+          <ol class="list-group list-group-numbered">
+            ${recipe.instructions
+              .map(
+                (instruction) =>
+                  `<li class="list-group-item">${instruction}</li>`
+              )
+              .join("")}
+          </ol>
+        </div>
+      `
+          : ""
+      }
+
+      <!-- Demo Summary -->
+      <div class="alert alert-success">
+        <h6><i class="fas fa-check-circle me-2"></i>Demo Complete!</h6>
+        <p class="mb-2">This demo shows how the AI Recipe Shoplist Crawler:</p>
+        <ul class="mb-0">
+          <li>Extracts ingredients from recipes</li>
+          <li>Finds matching products in grocery stores</li>
+          <li>Provides direct links to store product pages</li>
+          <li>Creates an organized shopping list</li>
+        </ul>
+      </div>
+    `;
+
+    resultsContent.innerHTML = html;
+    resultsSection.style.display = "block";
+    resultsSection.scrollIntoView({ behavior: "smooth" });
+  }
+
+  renderShoppingList(shoppingListItems) {
+    return shoppingListItems
+      .map((item) => {
+        let ingredient = item.ingredient;
+        // Fallback: if ingredient is a string, convert to object
+        if (typeof ingredient === "string") {
+          ingredient = { name: ingredient };
+        }
+        const product = item.selected_product;
+        const quantityText = ingredient.quantity
+          ? `${ingredient.quantity} ${ingredient.unit || ""}`.trim()
+          : "As needed";
+        const imageName = ingredient.name
+          ? ingredient.name.replace(/\s+/g, "-").toLowerCase()
+          : "unknown";
+        const imageUrl = `/static/img/demo-pics/${imageName}.jpg`;
+        const fallbackImage = this.app.generatePlaceholderImage(
+          ingredient.name
+        );
+        const estimatedCost = item.estimated_cost || item.total_cost || null;
+        return `
+        <div class="ingredient-item">
+          <div class="ingredient-image">
+            <img src="${imageUrl}" alt="${
+          ingredient.name
+        }" class="img-fluid rounded" style="width: 80px; height: 80px; object-fit: cover;"
+              onerror="this.src='${fallbackImage}'; this.onerror=null;">
+          </div>
+          <div class="ingredient-details flex-grow-1">
+            <h6>${ingredient.name}</h6>
+            <div class="ingredient-quantity">${quantityText}</div>
+            <small class="text-muted">${ingredient.original_text || ""}</small>
+            <div class="product-info">
+              ${
+                product
+                  ? `
+                <small class="text-success">
+                  <i class="fas fa-store me-1"></i>
+                  ${product.store || "Unknown Store"} - $${(
+                      product.price || 0
+                    ).toFixed(2)} ${product.price_unit || ""}
+                </small>
+                <br>
+                ${
+                  product.url
+                    ? `<a href="${
+                        product.url
+                      }" target="_blank" class="text-decoration-none"><small class="text-primary"><i class="fas fa-external-link-alt me-1"></i>${
+                        product.name || "Product name unavailable"
+                      }</small></a>`
+                    : `<small class="text-muted">${
+                        product.name || "Product name unavailable"
+                      }</small>`
+                }
+              `
+                  : `
+                <small class="text-warning">
+                  <i class="fas fa-search me-1"></i>
+                  No shopping products found
+                </small>
+              `
+              }
+            </div>
+          </div>
+          <div class="text-end">
+            <strong class="text-success">${
+              estimatedCost !== null ? `$${estimatedCost.toFixed(2)}` : "-"
+            }</strong>
+          </div>
+        </div>
+      `;
+      })
+      .join("");
   }
 
   createDemoRecipe() {
@@ -114,168 +279,7 @@ class DemoManager {
     };
   }
 
-  displayDemoResults(data) {
-    const resultsSection = document.getElementById("resultsSection");
-    const resultsContent = document.getElementById("resultsContent");
+  // displayDemoResults is no longer needed; main app display logic is used
 
-    if (!resultsSection || !resultsContent) return;
-
-    const recipe = data.recipe;
-    const products = data.products || [];
-
-    const html = `
-            <!-- Demo Banner -->
-            <div class="alert alert-info">
-                <h5><i class="fas fa-flask me-2"></i>Demo Mode - Gazpacho Recipe</h5>
-                <p class="mb-0">This is a demo showing how the app works with pre-loaded product data from ALDI.</p>
-            </div>
-
-            <!-- Recipe Information -->
-            <div class="recipe-card fade-in">
-                <div class="recipe-title">
-                    <i class="fas fa-utensils me-2"></i>
-                    ${recipe.title}
-                </div>
-                <div class="recipe-meta">
-                    ${
-                      recipe.servings
-                        ? `<div class="meta-item"><i class="fas fa-users"></i> ${recipe.servings} servings</div>`
-                        : ""
-                    }
-                    ${
-                      recipe.prep_time
-                        ? `<div class="meta-item"><i class="fas fa-clock"></i> ${recipe.prep_time}</div>`
-                        : ""
-                    }
-                    ${
-                      recipe.cook_time
-                        ? `<div class="meta-item"><i class="fas fa-fire"></i> ${recipe.cook_time}</div>`
-                        : ""
-                    }
-                </div>
-                ${recipe.description ? `<p>${recipe.description}</p>` : ""}
-                <a href="${
-                  recipe.url
-                }" target="_blank" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-external-link-alt me-1"></i>
-                    View Original Recipe
-                </a>
-            </div>
-
-            <!-- Products Found -->
-            <div class="mb-4">
-                <h5 class="mb-3">
-                    <i class="fas fa-shopping-basket me-2"></i>
-                    Shopping List - Products Found (${products.length})
-                </h5>
-                <div class="ingredients-grid">
-                    ${this.renderDemoProducts(products)}
-                </div>
-            </div>
-
-            <!-- Instructions -->
-            ${
-              recipe.instructions && recipe.instructions.length > 0
-                ? `
-            <div class="mb-4">
-                <h5 class="mb-3">
-                    <i class="fas fa-list-ol me-2"></i>
-                    Instructions
-                </h5>
-                <ol class="list-group list-group-numbered">
-                    ${recipe.instructions
-                      .map(
-                        (instruction) => `
-                        <li class="list-group-item">${instruction}</li>
-                    `
-                      )
-                      .join("")}
-                </ol>
-            </div>`
-                : ""
-            }
-
-            <!-- Demo Summary -->
-            <div class="alert alert-success">
-                <h6><i class="fas fa-check-circle me-2"></i>Demo Complete!</h6>
-                <p class="mb-2">This demo shows how the AI Recipe Shoplist Crawler:</p>
-                <ul class="mb-0">
-                    <li>Extracts ingredients from recipes</li>
-                    <li>Finds matching products in grocery stores</li>
-                    <li>Provides direct links to store product pages</li>
-                    <li>Creates an organized shopping list</li>
-                </ul>
-            </div>
-        `;
-
-    resultsContent.innerHTML = html;
-    resultsSection.style.display = "block";
-    resultsSection.scrollIntoView({ behavior: "smooth" });
-  }
-
-  renderDemoProducts(products) {
-    return products
-      .map((product) => {
-        const productName = product.name || "Unknown Product";
-        const ingredientName = product.ingredient || "Unknown Ingredient";
-        const store = product.store || "Unknown Store";
-        const price = product.price || 0;
-
-        return `
-                <div class="ingredient-item">
-                    <div class="ingredient-image">
-                        <img src="${
-                          product.image_url ||
-                          this.app.generatePlaceholderImage(ingredientName)
-                        }" 
-                             alt="${productName}" 
-                             class="img-fluid rounded"
-                             style="width: 80px; height: 80px; object-fit: cover;"
-                             onerror="this.src='${this.app.generatePlaceholderImage(
-                               ingredientName
-                             )}'; this.onerror=null;">
-                    </div>
-                    <div class="ingredient-details flex-grow-1">
-                        <h6>${ingredientName}</h6>
-                        <div class="ingredient-quantity">${
-                          product.quantity || 1
-                        } ${product.size || "unit"}</div>
-                        <small class="text-muted">${productName}</small>
-                        <div class="product-info">
-                            <small class="text-success">
-                                <i class="fas fa-store me-1"></i>
-                                ${store.toUpperCase()} - $${price.toFixed(2)}
-                            </small>
-                            ${
-                              product.url
-                                ? `<br><a href="${
-                                    product.url
-                                  }" target="_blank" class="text-decoration-none product-link">
-                                   <small class="text-primary fw-bold">
-                                     <i class="fas fa-external-link-alt me-1"></i>
-                                     View at ${store.toUpperCase()}
-                                   </small>
-                                 </a>`
-                                : ""
-                            }
-                            ${
-                              product.ia_reasoning
-                                ? `<br><small class="text-info">
-                                   <i class="fas fa-robot me-1"></i>
-                                   ${product.ia_reasoning}
-                                 </small>`
-                                : ""
-                            }
-                        </div>
-                    </div>
-                    <div class="text-end">
-                        <strong class="text-success">$${price.toFixed(
-                          2
-                        )}</strong>
-                    </div>
-                </div>
-            `;
-      })
-      .join("");
-  }
+  // renderDemoProducts is no longer needed; main app rendering is used
 }

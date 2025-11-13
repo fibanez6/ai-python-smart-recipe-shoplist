@@ -23,6 +23,7 @@ from app.models import (
     Recipe,
     SearchStoresRequest,
     SearchStoresResponse,
+    ShoppingListItem,
     Store,
 )
 
@@ -85,12 +86,11 @@ async def process_recipe(url: str = Form(...)):
         
         raise HTTPException(status_code=500, detail=detail)
 
-
 @api_v1_router.post("/search-stores")
 async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
     """Search grocery stores for ingredients."""
     try:
-        logger.info(f"[v1] [API] Searching stores for {len(request.ingredients)} ingredients in stores: {request.stores}")
+        logger.info(f"[v1] Searching stores for {len(request.ingredients)} ingredients in stores: {request.stores}")
 
         # Search all stores (or specified stores)
         stores_names = [store.lower() for store in request.stores]
@@ -104,25 +104,25 @@ async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
         # Import parallel utilities
         from app.utils.parallel_utils import AsyncMap
 
-        async def search_ingredient(ingredient: Ingredient):
+        async def search_product(ingredient: Ingredient):
             """Search for a single ingredient."""
-            logger.info(f"[v1] [API] Searching stores for ingredient: {ingredient.name}")
+            logger.info(f"[v1] Searching stores for ingredient: {ingredient.name}")
 
             # Search for products using AI
             response = await ai_service.search_grocery_products_intelligently(ingredient, stores)
 
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug((f"[v1] [API] AI search for ingredient '{ingredient.name}' - output:", response))
+                logger.debug((f"[v1] AI search for ingredient '{ingredient.name}' - output:", response))
             
             return response
 
         # Process ingredients concurrently using parallel utilities
-        product_results = []
+        shoppingItems = []
         ia_stats = []
         
         # Use AsyncMap for concurrent async operations with rate limiting
         responses = await AsyncMap.map(
-            search_ingredient,
+            search_product,
             ingredients,
             max_concurrency=3,  # Limit concurrency to be polite to APIs
             delay=0.5,          # 0.5 second delay between requests
@@ -131,32 +131,31 @@ async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
 
         for response in responses:
             if isinstance(response, Exception):
-                logger.error(f"[v1] [API] Error in ingredient search: {response}")
+                logger.error(f"[v1] Error in product search: {response}")
                 continue
                 
-            # Process the AI response for this ingredient
-            logger.debug(f"[v1] [API] AI response for ingredient search: {response}")    
-
-            product: Product = response.get("product")
-            if product:
-                product_results.append(product)
+            # Process the AI response for this product
+            logger.debug(f"[v1] AI response for product search: {response}")    
+            shoppingItem: ShoppingListItem = response.get("shoppingItem")
+            if shoppingItem:
+                shoppingItems.append(shoppingItem)
             
             ai_info = response.get("ai_info", {})
             if ai_info:
                 ia_stats.append(ai_info)
 
-        logger.info(f"[v1] [API] Completed store search for {len(ingredients)} ingredients")
+        logger.info(f"[v1] Completed store search for {len(ingredients)} products")
 
         return SearchStoresResponse(
             success=True,
             stores=[Store.mapConfig(store.name, store.display_name, store.region, store.base_url) for store in stores],
-            products=product_results,
+            shopping_list_items=shoppingItems,
             ia_stats=ia_stats,
             timestamp=datetime.now().isoformat()
         )
         
     except Exception as e:
-        logger.error(f"[v1] [API] Error occurred while searching stores: {e}")
+        logger.error(f"[v1] Error occurred while searching stores: {e}")
         logger.error("Stack trace:\n" + pprint.pformat(traceback.format_exc()))
         # Provide more user-friendly error messages
         if "rate limit" in str(e).lower():
@@ -169,7 +168,6 @@ async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
             detail = f"[v1] An error occurred while searching stores: {str(e)}"
         
         raise HTTPException(status_code=500, detail=detail)
-
 
 @api_v1_router.post("/fetcher")
 async def get_fetcher_content(recipe_url: str = Form(...)):
@@ -242,33 +240,39 @@ async def demo_recipe() -> SearchStoresResponse:
         project_root = current_file.parent.parent.parent
         stub_file = project_root / "stub_responses" / "search_stores" / "gazpacho.json"
         
+
         # Read the stub response file
         with open(stub_file, 'r', encoding='utf-8') as f:
             stub_data = json.load(f)
-        
-        # # Parse the stub data into SearchStoresResponse
-        # # Convert the products to Product objects
-        # products = []
-        # for product_data in stub_data.get("products", []):
-        #     product = Product(**product_data)
-        #     products.append(product)
-        
-        # # Convert stores to Store objects
-        # stores = []
-        # for store_data in stub_data.get("stores", []):
-        #     store = Store(**store_data)
-        #     stores.append(store)
-        
-        # # Create and return the SearchStoresResponse
-        # return SearchStoresResponse(
-        #     success=stub_data.get("success", True),
-        #     stores=stores,
-        #     products=products,
-        #     ia_stats=stub_data.get("ia_stats", []),
-        #     timestamp=datetime.now().isoformat()
-        # )
 
-        return SearchStoresResponse(**stub_data)
+        # Map stub products to ShoppingListItem objects for frontend compatibility
+        shopping_list_items = []
+        for product_data in stub_data.get("products", []):
+            # Build ingredient object
+            ingredient = Ingredient(
+                name=product_data.get("ingredient", product_data.get("name", "")),
+                quantity=product_data.get("quantity", 1),
+                unit=None,
+                original_text=product_data.get("name", "")
+            )
+            # Build ShoppingListItem with required quantity_needed field
+            shopping_item = ShoppingListItem(
+                ingredient=ingredient,
+                selected_product=Product(**product_data),
+                quantity_needed=product_data.get("quantity", 1),
+                total_cost=product_data.get("price", 0.0)
+            )
+            shopping_list_items.append(shopping_item)
+
+        # Compose response
+        response = SearchStoresResponse(
+            success=stub_data.get("success", True),
+            stores=stub_data.get("stores", []),
+            shopping_list_items=shopping_list_items,
+            ia_stats=stub_data.get("ia_stats", []),
+            timestamp=datetime.now().isoformat()
+        )
+        return response
         
     except Exception as e:
         logger.error(f"[v1] Error loading demo stub data: {e}")

@@ -9,7 +9,7 @@ from app.scrapers.scraper_factory import ScraperFactory
 
 from ..config.logging_config import get_logger
 from ..config.store_config import StoreConfig
-from ..models import ChatCompletionResult, Ingredient, Product, Recipe
+from ..models import ChatCompletionResult, Ingredient, Product, Recipe, ShoppingListItem
 
 # Get module logger
 logger = get_logger(__name__)
@@ -113,14 +113,13 @@ class AIService:
             #         fetch_data_processed.extend(fetch.get("data"))
 
             # Use AI to find the best match products
-            ia_response: ChatCompletionResult[Product] = await self.ai_chat_client.search_best_match_products(ingredient, store_fetch_results)
+            ia_response: ChatCompletionResult[ShoppingListItem] = await self.ai_chat_client.search_best_match_products(ingredient, store_fetch_results)
 
-            # Parse AI response into Product model
-            product = ia_response.content if isinstance(ia_response.content, Product) else Product(**ia_response.content)
+            # Parse AI response into ShoppingListItem model
+            shoppingItem = ia_response.content if isinstance(ia_response.content, ShoppingListItem) else ShoppingListItem(**ia_response.content)
 
             return {
-                "product": product,
-                "ingredient": ingredient.name,
+                "shoppingItem": shoppingItem,
                 "ai_info": {
                     **(ia_response.metadata or {})
                 }

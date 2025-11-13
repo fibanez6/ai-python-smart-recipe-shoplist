@@ -12,7 +12,7 @@ from app.services.tokenizer_service import TokenizerService
 from ..config.logging_config import get_logger
 from ..config.pydantic_config import AI_SERVICE_SETTINGS
 from ..config.store_config import StoreConfig
-from ..models import ChatCompletionResult, Ingredient, Product, Recipe
+from ..models import ChatCompletionResult, Ingredient, Product, Recipe, ShoppingListItem
 
 # Get module logger
 logger = get_logger(__name__)
@@ -76,7 +76,7 @@ HTML content:
             logger.error(f"[{self.name}] Full stack trace: {traceback.format_exc()}")
             raise Exception("Failed to extract recipe data using AI provider.") from e
 
-    async def search_best_match_products(self, ingredient: Ingredient, fetch_content: list[dict]) -> ChatCompletionResult[Product]:
+    async def search_best_match_products(self, ingredient: Ingredient, fetch_content: list[dict]) -> ChatCompletionResult[ShoppingListItem]:
         """Search grocery products for an ingredient using AI."""
 
         logger.info(f"[{self.name}] Searching grocery products for {ingredient.name} using AI")
@@ -123,11 +123,12 @@ Store content:
                 {"role": "system", "content": system},
                 {"role": "user", "content": prompt}
             ],
-            "response_format": Product
+            "response_format": ShoppingListItem
+            # "response_format": Product
         }
         
         try:
-            return await self.provider.complete_chat(chat_params, max_tokens=500)
+            return await self.provider.complete_chat(chat_params)
         except Exception as e:
             logger.error(f"[{self.name}] Error in search_grocery_products: {e}")
             raise Exception("Failed to extract product data using AI provider.") from e

@@ -1,0 +1,22 @@
+{
+"ingredients": [
+  {
+    "name": "sherry vinegar",
+    "quantity": 1.5,
+    "unit": "tbsp",
+    "original_text": "1 1/2 tbsp sherry vinegar (sub white wine or champagne vinegar)",
+    "optional": false,
+    "category": "condiment",
+    "alternatives": [
+      "white wine vinegar",
+      "champagne vinegar"
+    ],
+    "notes": "substitute options available",
+    "quality": null,
+    "brand_preference": null
+  }
+],
+  "stores": [
+    "Aldi"
+  ]
+}

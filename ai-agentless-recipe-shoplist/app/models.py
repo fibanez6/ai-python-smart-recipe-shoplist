@@ -49,7 +49,7 @@ class QuantityUnit(str, Enum):
 
 class Ingredient(BaseModel):
     """Represents a recipe ingredient with quantity and unit."""
-    name: str = Field(..., description="Normalised name of the ingredient without adjectives")
+    name: str = Field(..., description="Normalised australian name of the ingredient without adjectives")
     quantity: Optional[float] = Field(None, description="Amount needed")
     unit: Optional[QuantityUnit] = Field(QuantityUnit.DEFAULT, description="Unit of measurement")
     original_text: str = Field(..., description="Original ingredient text from recipe")
@@ -96,13 +96,14 @@ class Product(BaseModel):
     name: str = Field(..., description="Full product name from the store")
     ingredient: str = Field(..., description="Associated ingredient name")
     price: float = Field(..., description="Product price")
+    price_unit : str = Field(..., description="Price unit, e.g., 'per kg', 'per item'")
     store: str = Field(..., description="Store name")
     quantity: int = Field(1, description="Number of units")
     url: Optional[str] = Field(None, description="Product URL")
     image_url: Optional[str] = Field(None, description="Product image URL")
     brand: Optional[str] = Field(None, description="Product brand")
     size: Optional[str] = Field(None, description="Product size/weight")
-    unit_price: Optional[float] = Field(None, description="Price per unit")
+    # unit_price: Optional[float] = Field(None, description="Price per unit")
     availability: Optional[bool] = Field(True, description="Product availability")
     ia_reasoning: Optional[str] = Field(None, description="Short AI reasoning for product selection")
 
@@ -153,51 +154,27 @@ class SearchStoresRequest(BaseModel):
     ingredients: list[Ingredient] = Field(..., description="Ingredients to search")
     stores: Optional[list[str]] = Field(None, description="Specific stores to search")
 
-class StoreSearchResult(BaseModel):
-    """Result from searching a store for an ingredient."""
-    ingredient_name: str = Field(..., description="Searched ingredient name")
-    store_name: str = Field(..., description="Store that was searched")
-    products: list[Product] = Field(default_factory=list, description="Found products")
-    search_time: Optional[float] = Field(None, description="Search duration in seconds")
+# class StoreSearchResult(BaseModel):
+#     """Result from searching a store for an ingredient."""
+#     ingredient_name: str = Field(..., description="Searched ingredient name")
+#     store_name: str = Field(..., description="Store that was searched")
+#     products: list[Product] = Field(default_factory=list, description="Found products")
+#     search_time: Optional[float] = Field(None, description="Search duration in seconds")
 
 class ShoppingListItem(BaseModel):
     """An item in the shopping list with selected product."""
     ingredient: Ingredient = Field(..., description="Original ingredient")
     selected_product: Optional[Product] = Field(None, description="Selected product")
     quantity_needed: float = Field(..., description="Quantity needed for recipe")
-    estimated_cost: Optional[float] = Field(None, description="Estimated cost")
+    total_cost: Optional[float] = Field(None, description="Total cost is based on quantity plus product price")
     store_options: Optional[dict[str, Product]] = Field(None, description="Available products from different stores")
 
-class OptimizationResult(BaseModel):
-    """Result of price optimization across stores."""
-    items: list[ShoppingListItem] = Field(..., description="Optimized shopping list")
-    total_cost: float = Field(..., description="Total estimated cost")
-    stores_breakdown: dict[str, float] = Field(..., description="Cost per store")
-    savings: Optional[float] = Field(None, description="Savings vs. single store")
-
-class Bill(BaseModel):
-    """Generated shopping bill."""
-    id: str = Field(..., description="Unique bill identifier")
-    recipe_title: str = Field(..., description="Recipe name")
-    generated_at: str = Field(..., description="Generation timestamp")
-    items: list[ShoppingListItem] = Field(..., description="Bill items")
-    subtotal: float = Field(..., description="Subtotal before tax")
-    tax_rate: float = Field(0.1, description="Tax rate")
-    tax_amount: float = Field(..., description="Tax amount")
-    total: float = Field(..., description="Total amount")
-    stores: list[str] = Field(..., description="Stores to visit")
-    stores_breakdown: Optional[dict[str, float]] = Field(None, description="Cost breakdown by store")
-
-class ProcessRecipeRequest(BaseModel):
-    """Request to process a recipe URL."""
-    url: str = Field(..., description="Recipe URL to process")
-    servings_adjustment: Optional[int] = Field(None, description="Adjust servings")
-
-class GenerateBillRequest(BaseModel):
-    """Request to generate a shopping bill."""
-    recipe: Recipe = Field(..., description="Recipe information")
-    optimization_result: OptimizationResult = Field(..., description="Optimization result")
-    format: str = Field("pdf", description="Output format: pdf or html")
+# class OptimizationResult(BaseModel):
+#     """Result of price optimization across stores."""
+#     items: list[ShoppingListItem] = Field(..., description="Optimized shopping list")
+#     total_cost: float = Field(..., description="Total estimated cost")
+#     stores_breakdown: dict[str, float] = Field(..., description="Cost per store")
+#     savings: Optional[float] = Field(None, description="Savings vs. single store")
 
 class APIResponse(BaseModel):
     """Standard API response wrapper."""
@@ -218,7 +195,7 @@ class SearchStoresResponse(BaseModel):
     """Response for searching stores for products."""
     success: bool = Field(..., description="Whether the search was successful")
     stores: list[Store] = Field(default_factory=list, description="Stores that were searched")
-    products: list[Product] = Field(default_factory=list, description="Products found")
+    shopping_list_items: list[ShoppingListItem] = Field(default_factory=list, description="Shopping list items found")
     ia_stats: Optional[list[dict]] = Field(default_factory=list, description="Intelligent Assistant stats")
     timestamp: str = Field(..., description="Response timestamp")
 
