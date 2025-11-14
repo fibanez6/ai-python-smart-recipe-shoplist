@@ -1,4 +1,3 @@
-
 # AI Recipe Shoplist 🤖🛒
 
 AI Recipe Shoplist is an intelligent Python 3.11+ application that analyzes recipe websites, extracts ingredients using AI, and searches multiple grocery stores for matching products. It demonstrates AI-powered recipe analysis with real-world grocery store integration and a modern web interface.
@@ -8,11 +7,10 @@ AI Recipe Shoplist is an intelligent Python 3.11+ application that analyzes reci
 ## 🚀 Features
 
 - 🤖 **AI-Powered Recipe Extraction**: Uses OpenAI, Azure OpenAI, Ollama, or GitHub Models to intelligently parse recipe websites
-- 🛒 **Multi-Store Product Search**: Searches Coles, Woolworths, ALDI, and IGA with real product URLs
+- 🛒 **Multi-Store Product Search**: Searches Coles and ALDI with real product URLs
 - 🔗 **Clickable Product Links**: Direct links to grocery store products for easy shopping
 - 🧠 **Smart Product Matching**: AI-enhanced ingredient matching with store-specific product catalogs
 - 🌐 **Modern Web Interface**: FastAPI-based application with responsive design and demo functionality
-- 📱 **Mobile-Friendly**: Works seamlessly on desktop and mobile devices
 - ⚡ **Fast Dependencies**: Uses `uv` for lightning-fast dependency management and virtual environments
 - ⚙️ **Type-Safe Configuration**: Pydantic-based configuration with validation and type checking
 - 🔄 **Robust Error Handling**: Automatic retry logic with exponential backoff
@@ -104,6 +102,65 @@ ai-recipe-shoplist/
 ├── start.sh                     # Startup script
 └── README.md                    # This file
 ```
+
+## 🔍 How it Works 
+
+This project is an intelligent web application that uses AI to analyze recipes, extract ingredients, and find matching products from multiple grocery stores. It combines Python backend services, AI providers, and a modern frontend to deliver a seamless shopping experience.
+
+### System Overview
+
+1. **User Input**: The user enters a recipe URL in the web interface.
+2. **AI Extraction**: The backend uses an AI provider (OpenAI, Azure, Ollama, or GitHub Models) to intelligently extract ingredients, quantities, and instructions from the recipe webpage.
+3. **Store Search**: The system queries configured grocery stores (Coles, Woolworths, ALDI, IGA) for products matching each ingredient.
+4. **Product Matching**: AI matches extracted ingredients with available store products, considering price, quantity, and relevance.
+5. **Results Display**: The frontend displays matched products, clickable store links, and a shopping list for the user.
+6. **Demo Mode**: Users can try a demo with a sample recipe and real product data.
+
+### Architecture Diagram
+
+<div align="center">
+   <img src="docs/img/AI_Recipe_Shoplist_Diagram.svg" alt="Shopping List Diagram" width="75%">
+</div>
+
+```mermaid
+flowchart TD
+   A[User] -->|Recipe URL| B(Web Interface)
+   B -->|Send URL| C[FastAPI Backend]
+   C -->|Extract Recipe| D[AI Provider]
+   D -->|Ingredients, Instructions| C
+   C -->|Search Products| E[Grocery Store APIs]
+   E -->|Product Data| C
+   C -->|Match Products| F[AI Matching]
+   F -->|Shopping List Items| C
+   C -->|Results| B
+   B -->|Display| A
+   B -->|Demo Mode| G[Demo Data]
+   G -->|Sample Results| B
+```
+
+### Data Flow
+
+1. **Input**: User provides a recipe URL.
+2. **AI Extraction**: Backend sends the URL to the AI provider, which returns structured recipe data.
+3. **Store Search**: For each ingredient, the backend queries store APIs or scrapers for matching products.
+4. **Product Matching**: AI logic selects the best product for each ingredient.
+5. **Frontend Display**: Results are shown in a responsive web interface, with direct links to products.
+
+### Key Components
+
+- **FastAPI Backend**: Handles API requests, recipe extraction, product search, and business logic.
+- **AI Providers**: Extract recipe data and assist in product matching.
+- **Grocery Store Integrations**: Search for products in real stores.
+- **Frontend (HTML/JS)**: User interface for input and results.
+- **Storage System**: Caches and stores data for performance and reliability.
+
+### Example Workflow
+
+1. User enters a recipe URL and clicks "Process Recipe".
+2. Backend extracts ingredients using AI.
+3. Backend searches stores for matching products.
+4. AI matches products to ingredients.
+5. Frontend displays shopping list with product links.
 
 ## 🛠️ Installation
 
