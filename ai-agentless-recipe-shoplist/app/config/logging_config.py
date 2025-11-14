@@ -176,11 +176,14 @@ def configure_third_party_loggers(level: int = logging.WARNING) -> None:
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
-    
+
+    # Reduce markdown_it.rules_block noise
+    logging.getLogger("markdown_it.rules_block").setLevel(logging.ERROR)
+
     # Reduce OpenAI client verbosity
     logging.getLogger("openai").setLevel(logging.WARNING)
     logging.getLogger("azure").setLevel(logging.WARNING)
-    
+
     # Reduce FastAPI/Uvicorn noise in debug mode
     if level == logging.DEBUG:
         logging.getLogger("uvicorn").setLevel(logging.INFO)

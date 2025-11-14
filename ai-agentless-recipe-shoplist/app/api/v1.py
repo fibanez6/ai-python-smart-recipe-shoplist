@@ -135,7 +135,7 @@ async def search_stores(request: SearchStoresRequest) -> SearchStoresResponse:
                 continue
                 
             # Process the AI response for this product
-            logger.debug(f"[v1] AI response for product search: {response}")    
+            logger.debug((f"[v1] AI response for product search", response))
             shoppingItem: ShoppingListItem = response.get("shoppingItem")
             if shoppingItem:
                 shoppingItems.append(shoppingItem)
@@ -259,7 +259,7 @@ async def demo_recipe() -> SearchStoresResponse:
             shopping_item = ShoppingListItem(
                 ingredient=ingredient,
                 selected_product=Product(**product_data),
-                quantity_needed=product_data.get("quantity", 1),
+                quantity=product_data.get("quantity", 1),
                 total_cost=product_data.get("price", 0.0)
             )
             shopping_list_items.append(shopping_item)

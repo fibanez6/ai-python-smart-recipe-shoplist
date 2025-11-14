@@ -11,6 +11,7 @@ from ..utils.ai_helpers import (
     get_ai_token_stats,
     log_ai_chat_query,
     log_ai_chat_response,
+    log_ai_error,
 )
 
 # Get module logger
@@ -145,8 +146,7 @@ class BaseAIProvider(ABC):
 
             return response
         except Exception as e:
-            logger.error(f"[{self.name}] OpenAI API error: {e}")
-            logger.error(f"[{self.name}] Full stack trace: {traceback.format_exc()}")
+            log_ai_error(self.name, e, logger)
             raise
             
     async def close(self):

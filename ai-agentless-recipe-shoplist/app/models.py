@@ -103,7 +103,7 @@ class Product(BaseModel):
     image_url: Optional[str] = Field(None, description="Product image URL")
     brand: Optional[str] = Field(None, description="Product brand")
     size: Optional[str] = Field(None, description="Product size/weight")
-    # unit_price: Optional[float] = Field(None, description="Price per unit")
+    unit_price: Optional[float] = Field(None, description="Price per unit")
     availability: Optional[bool] = Field(True, description="Product availability")
     ia_reasoning: Optional[str] = Field(None, description="Short AI reasoning for product selection")
 
@@ -164,10 +164,10 @@ class SearchStoresRequest(BaseModel):
 class ShoppingListItem(BaseModel):
     """An item in the shopping list with selected product."""
     ingredient: Ingredient = Field(..., description="Original ingredient")
-    selected_product: Optional[Product] = Field(None, description="Selected product")
-    quantity_needed: float = Field(..., description="Quantity needed for recipe")
+    selected_product: Optional[Product] = Field(None, description="Selected product by best price and matched criteria")
+    quantity: float = Field(..., description="Number of units product needed to match ingredient")
     total_cost: Optional[float] = Field(None, description="Total cost is based on quantity plus product price")
-    store_options: Optional[dict[str, Product]] = Field(None, description="Available products from different stores")
+    store_options: Optional[dict[str, Product]] = Field(None, description="Available products from different stores, only one per store")
 
 # class OptimizationResult(BaseModel):
 #     """Result of price optimization across stores."""

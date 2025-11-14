@@ -166,45 +166,42 @@ class RecipeShoplistApp {
         const shoppingArr = key ? this.ingredientShoppingItemMap.get(key) || [] : [];
         const bestProduct = shoppingArr[0]?.selected_product || null;
         let imageUrl = bestProduct?.image_url;
-        if (!imageUrl) imageUrl = this.generatePlaceholderImage(name);
+        if (!imageUrl) 
+          imageUrl = this.generatePlaceholderImage(name);
+        
         let imageSection = `<div class="ingredient-image">
           <img src="${imageUrl}" alt="${name}" class="img-fluid rounded" style="width:80px;height:80px;object-fit:cover;"
             onerror="this.src='${this.generatePlaceholderImage(name)}';this.onerror=null;">
         </div>`;
-        let productInfo = "";
+        let productInfo = `<div class="product-info">`;
+        
         if (shoppingArr[0]?.store_options) {
-          productInfo = `<div class="product-info">`;
-          Object.entries(shoppingArr[0].store_options).forEach(([store, product]) => {
+            Object.entries(shoppingArr[0].store_options)
+            .filter(([store, product]) => product.url !== bestProduct?.url)
+            .forEach(([store, product]) => {
             const isSelected = bestProduct && product.url === bestProduct.url;
             productInfo += `
               <div class="store-product${isSelected ? " selected-product" : ""}">
                 <small class="${isSelected ? "text-success fw-bold" : "text-secondary"}">
                   <i class="fas fa-store me-1"></i>${store} - $${(product.price || 0).toFixed(2)} ${product.price_unit || ""}
-                </small><br>
-                ${product.url
-                  ? `<a href="${product.url}" target="_blank" class="text-decoration-none">
-                      <small class="${isSelected ? "text-primary fw-bold" : "text-muted"}">
-                        <i class="fas fa-external-link-alt me-1"></i>${product.name || "Product name unavailable"}
-                      </small>
-                    </a>`
-                  : `<small class="text-muted">${product.name || "Product name unavailable"}</small>`
-                }
+                </small>
               </div>`;
           });
-          productInfo += `</div>`;
-        } else if (bestProduct) {
-          productInfo = `<div class="product-info">
+          
+        }  
+        if (bestProduct) {
+          productInfo += `
             <small class="text-success"><i class="fas fa-store me-1"></i>${bestProduct.store || "Unknown Store"} - $${(bestProduct.price || 0).toFixed(2)} ${bestProduct.price_unit || ""}</small><br>
             ${bestProduct.url
               ? `<a href="${bestProduct.url}" target="_blank" class="text-decoration-none">
                   <small class="text-primary"><i class="fas fa-external-link-alt me-1"></i>${bestProduct.name || "Product name unavailable"}</small>
                 </a>`
               : `<small class="text-muted">${bestProduct.name || "Product name unavailable"}</small>`
-            }
-          </div>`;
+            }`;
         } else {
-          productInfo = `<div class="product-info"><small class="text-warning"><i class="fas fa-search me-1"></i>No shopping products found</small></div>`;
+          productInfo += `<small class="text-warning"><i class="fas fa-search me-1"></i>No shopping products found</small>`;
         }
+        productInfo += `</div>`;
         const totalCost = shoppingArr[0]?.total_cost ?? null;
         return `<div class="ingredient-item">
           ${imageSection}
@@ -220,11 +217,7 @@ class RecipeShoplistApp {
   }
 
   generatePlaceholderImage(name) {
-    const hash = this.simpleHash(name);
-    const seed = hash % 1000;
-    const keywords = ["food", "ingredient", "grocery", "fresh", "kitchen"];
-    const keyword = keywords[hash % keywords.length];
-    return `https://source.unsplash.com/200x200/?${keyword}&sig=${seed}`;
+    return "/static/img/placeholder.png";
   }
 
   simpleHash(str) {

@@ -5,7 +5,12 @@ AI utility functions for response processing and data handling.
 import json
 import logging
 import re
+import traceback
 from typing import Any, Union
+
+import rich
+from rich.panel import Panel
+from rich.markdown import Markdown
 
 from ..config.pydantic_config import LOG_SETTINGS
 from ..services.tokenizer_service import TokenizerService  # Import TokenizerService
@@ -184,7 +189,7 @@ def log_ai_chat_query(provider_name: str, chat_params: list[dict[str, str]], log
         level: Logging level (e.g., logging.INFO)
     """
     if logger.isEnabledFor(level):
-        logger.log(level, "-" * 20 + " AI CHAT QUERY " + "-" * 20)
+        # logger.log(level, "-" * 20 + " AI CHAT QUERY " + "-" * 20)
 
         # Log chat parameters except messages
         params_copy = {k: v for k, v in chat_params.items() if k != 'messages'}
@@ -202,9 +207,35 @@ def log_ai_chat_query(provider_name: str, chat_params: list[dict[str, str]], log
             if LOG_SETTINGS.chat_message_single_line:
                 content = content.replace(chr(10), ' ')  # replace newlines with spaces for single line logging
 
-            logger.log(level, f"[{provider_name}] Message {i+1} ({msg.get('role', 'unknown')}): \n\"\"\"\n{content}\n\"\"\"")
+            rich.print(
+                Panel(
+                    Markdown(f"{content}"),
+                    title=f"[{provider_name}] Message {i+1}",
+                    border_style="bold blue",
+                    padding=(1, 2),
+                )
+            )
 
-        logger.log(level, "-" * 50)
+            # logger.log(level, f"[{provider_name}] Message {i+1} ({msg.get('role', 'unknown')}): \n\"\"\"\n{content}\n\"\"\"")
+        # logger.log(level, "-" * 50)
+
+
+def log_ai_error(provider_name: str, e: Exception, logger: logging.Logger, level: int = logging.DEBUG) -> None:
+    """
+    Log AI error with stack trace.
+    """
+    logger.error(f"[{provider_name}] Error logging AI response: {e}")
+    logger.error(f"[{provider_name}] Full stack trace: {traceback.format_exc()}")
+    if logger.isEnabledFor(level):
+        rich.print(
+                Panel(
+                    Markdown(f"Error in AI call: {e}"),
+                    title=f"[{provider_name}] AI Call Error",
+                    border_style="bold red",
+                    padding=(1, 2),
+                )
+            )
+
 
 
 def get_ai_token_stats(provider_name: str, response: Any) -> dict:
@@ -249,18 +280,29 @@ def log_ai_chat_response(provider_name: str, response: Any, logger: logging.Logg
     if logger.isEnabledFor(level):
         try:
             message = response.choices[0].message
+            log_content = ""
             if hasattr(message, 'refusal') and message.refusal:
-                logger.log(level, f"[{provider_name}] AI Response refused: {message.refusal}")
+                log_content = f"AI Response refused: {message.refusal}"
+                # logger.log(level, f"[{provider_name}] AI Response refused: {message.refusal}")
             elif hasattr(message, 'parsed') and message.parsed:
                 parsed = message.parsed.model_dump_json(indent=2)
-                logger.log(level, f"[{provider_name}] AI Response parsed: {parsed}")
+                log_content = f"AI Response parsed: {parsed}"
+                # logger.log(level, f"[{provider_name}] AI Response parsed: {parsed}")
             else:
                 content = message.content if hasattr(message, 'content') else message
                 max_length = LOG_SETTINGS.chat_message_max_length
                 if  max_length > 0:
                     content = content[:max_length] + ('...' if len(content) > max_length else '')
-                
-                logger.log(level, f"[{provider_name}] AI Response:\n\"\"\"\n{content}\n\"\"\"")
+                # logger.log(level, f"[{provider_name}] AI Response:\n\"\"\"\n{content}\n\"\"\"")
+                log_content = f"AI Response:\n{content}"
+            rich.print(
+                Panel(
+                    Markdown(f"{log_content}"),
+                    title=f"[{provider_name}] AI CHAT RESPONSE",
+                    border_style="bold green",
+                    padding=(1, 2),
+                )
+            )
         except Exception as e:
             logger.error(f"[{provider_name}] Error logging AI response: {e}")
 

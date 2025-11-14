@@ -5,6 +5,8 @@ import logging
 import traceback
 
 import rich
+from rich.panel import Panel
+from rich.markdown import Markdown
 
 from app.ia_provider.provider_factory import AIProvider
 from app.services.tokenizer_service import TokenizerService
@@ -42,21 +44,19 @@ class AIChatClient():
 
         # Set system message
         system = """You are an AI assistant specialized in extracting structured recipe data from web pages.
-Your task is to analyze the provided HTML content and return a valid JSON object containing the recipe's title, ingredients (with normalized names and quantities), and instructions.
-
-Guidelines:
-- Output strictly valid JSON, with no extra text or comments.
-- Normalize ingredient names and quantities.
-- Include the recipe title, a list of ingredients (with name and quantity), and step-by-step instructions.
-- No ingredient should be missing or duplicated.
-"""
+        Your task is to analyze the provided HTML content and return a valid JSON object containing the recipe's title, ingredients (with normalized names and quantities), and instructions.
+        Guidelines:
+        - Output strictly valid JSON, with no extra text or comments.
+        - Normalize ingredient names and quantities.
+        - Include the recipe title, a list of ingredients (with name and quantity), and step-by-step instructions.
+        - No ingredient should be missing or duplicated.
+        """
 
         # Use centralized prompt template
         prompt = f"""Please extract the recipe details from the following HTML content and return only a valid JSON object.
-
-HTML content:
-{html_content}
-"""
+        HTML content:
+        {html_content}
+        """
 
         # Truncate prompt if too long
         prompt = self._truncate_to_max_tokens(prompt)
@@ -76,14 +76,23 @@ HTML content:
             logger.error(f"[{self.name}] Full stack trace: {traceback.format_exc()}")
             raise Exception("Failed to extract recipe data using AI provider.") from e
 
-    async def search_best_match_products(self, ingredient: Ingredient, fetch_content: list[dict]) -> ChatCompletionResult[ShoppingListItem]:
+    async def search_best_match_products(self, ingredient: Ingredient, fetch_content: list[dict]) -> ChatCompletionResult[Product]:
         """Search grocery products for an ingredient using AI."""
 
-        logger.info(f"[{self.name}] Searching grocery products for {ingredient.name} using AI")
+        logger.info(f"[{self.name}] Searching grocery products for '{ingredient.name}' using AI")
 
         if logger.isEnabledFor(logging.DEBUG):
-            rich.print(fetch_content)
+            rich.print(
+                Panel(
+                    Markdown(f"Searching grocery products for '{ingredient.name}' using AI"),
+                    title="search_best_match_products",
+                    border_style="bold green",
+                    padding=(1, 2),
+                )
+            )
             rich.print(ingredient)
+            rich.print(fetch_content)
+
 
         store_content = json.dumps(fetch_content, separators=(",", ":"))
 
@@ -93,27 +102,84 @@ HTML content:
 
         # Set system message
         system = """You are an AI assistant specialized in searching and comparing grocery products online.
-Your task is to analyze the provided grocery store and ingredients, then return a structured JSON object containing the best-matched products.
-
-Guidelines:
-- Search the store for the listed ingredient, considering quantity and unit.
-- Return the best-matched product with the quantity needed based on the ingredient.
-- Round up quantities as needed to meet ingredient requirements.
-- Prioritize name similarity, product relevance, brand quality, and value (price per unit).
-- Include organic or premium options where applicable.
-- Output strictly valid JSON with no extra text or comments.
-- If no suitable match is found, clearly indicate this in the output.
-"""
+        Your task is to analyze the provided grocery store and ingredients, then return a structured JSON object containing the best-matched products.
+        Guidelines:
+        - Search the store for the listed ingredient, considering quantity and unit.
+        - Return the best-matched product with the quantity needed based on the ingredient.
+        - Round up quantities as needed to meet ingredient requirements.
+        - Prioritize name similarity, product relevance, brand quality, and value (price per unit).
+        - Include organic or premium options where applicable.
+        - Output strictly valid JSON with no extra text or comments.
+        - If no suitable match is found, clearly indicate this in the output.
+        """
 
         # Use centralized prompt template
         prompt = f"""Extract grocery the best-matched product from the store content.
+        Ingredient:
+        {ingredient}
+        Store content:
+        {store_content}
+        """
 
-Ingredient:
-{ingredient}
+        # Truncate prompt if too long
+        prompt = self._truncate_to_max_tokens(prompt)
 
-Store content:
-{store_content}
-"""
+        chat_params = {
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt}
+            ],
+            "response_format": Product
+            # "response_format": Product
+        }
+        
+        try:
+            return await self.provider.complete_chat(chat_params)
+        except Exception as e:
+            logger.error(f"[{self.name}] Error in search_grocery_products: {e}")
+            logger.error(f"[{self.name}] Full stack trace: {traceback.format_exc()}")
+            raise Exception("Failed to extract product data using AI provider.") from e
+
+    async def choose_best_product_in_stores(self, ingredient: Ingredient, store_candidates: dict[str, Product]) -> ChatCompletionResult[ShoppingListItem]:
+        """Choose the best product across multiple stores for an ingredient using AI."""
+
+        logger.info(f"[{self.name}] Choosing best product across stores for '{ingredient.name}' using AI")
+
+        if logger.isEnabledFor(logging.DEBUG):
+            rich.print(
+                Panel(
+                    Markdown(f"Choosing best product across stores for '{ingredient.name}' using AI"),
+                    title="choose_best_product_in_stores",
+                    border_style="bold green",
+                    padding=(1, 2),
+                )
+            )
+            rich.print(ingredient)
+            rich.print(store_candidates)
+
+        # Serialize Product objects to dict before dumping to JSON
+        candidates = json.dumps({store: product.model_dump() for store, product in store_candidates.items()}, separators=(",", ":"))
+
+        if not candidates or candidates == "[]":
+            logger.warning(f"[{self.name}] No store content available to choose best product.")
+            raise ValueError("No store content available to choose best product.")
+
+        # Set system message
+        system = """You are an AI assistant specialized in selecting the best grocery products across multiple stores.
+        Guidelines:
+        - Return the best-matched product with the quantity needed based on the ingredient.
+        - Round up quantities as needed to meet ingredient requirements.
+        - Output strictly valid JSON with no extra text or comments.
+        - If no suitable match is found, clearly indicate this in the output.
+        """
+
+        # Use centralized prompt template
+        prompt = f"""Extract grocery the best-matched product from the store content.
+        Ingredient:
+        {ingredient}
+        Product candidates:
+        {candidates}
+        """
 
         # Truncate prompt if too long
         prompt = self._truncate_to_max_tokens(prompt)
@@ -124,14 +190,14 @@ Store content:
                 {"role": "user", "content": prompt}
             ],
             "response_format": ShoppingListItem
-            # "response_format": Product
         }
         
         try:
             return await self.provider.complete_chat(chat_params)
         except Exception as e:
-            logger.error(f"[{self.name}] Error in search_grocery_products: {e}")
-            raise Exception("Failed to extract product data using AI provider.") from e
+            logger.error(f"[{self.name}] Error in choose_best_product_in_stores: {e}")
+            logger.error(f"[{self.name}] Full stack trace: {traceback.format_exc()}")
+            raise Exception("Failed to choose product data using AI provider.") from e
 
     async def close(self):
         await self.provider.close()

@@ -1,6 +1,7 @@
+
 # AI Recipe Shoplist 🤖🛒
 
-An intelligent Python 3.11+ application that analyzes recipe websites, extracts ingredients using AI, and searches multiple grocery stores for matching products. This project demonstrates AI-powered recipe analysis with real-world grocery store integration.
+AI Recipe Shoplist is an intelligent Python 3.11+ application that analyzes recipe websites, extracts ingredients using AI, and searches multiple grocery stores for matching products. It demonstrates AI-powered recipe analysis with real-world grocery store integration and a modern web interface.
 
 > **📋 Note**: This project uses modern Python tooling with `uv` for fast dependency management and includes a comprehensive web interface with clickable product links.
 
