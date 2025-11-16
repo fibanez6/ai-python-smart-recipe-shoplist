@@ -118,10 +118,6 @@ This project is an intelligent web application that uses AI to analyze recipes, 
 
 ### Architecture Diagram
 
-<div align="center">
-   <img src="docs/img/AI_Recipe_Shoplist_Diagram.svg" alt="Shopping List Diagram" width="75%">
-</div>
-
 ```mermaid
 flowchart TD
    A[User] -->|Recipe URL| B(Web Interface)
@@ -134,8 +130,6 @@ flowchart TD
    F -->|Shopping List Items| C
    C -->|Results| B
    B -->|Display| A
-   B -->|Demo Mode| G[Demo Data]
-   G -->|Sample Results| B
 ```
 
 ### Data Flow
